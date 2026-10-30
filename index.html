@@ -4,25 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quà của Chị 2</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="icon" href="assets/face.png">
+<link rel="icon" href="assets/head.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Be+Vietnam+Pro:wght@400;600;800&display=swap">
 <style>
-  /* Layout: one centered column, one sticker-card "arena" per level, loud party-poster palette (single look) */
+  /* Layout: one centered column, one sticker-card stage per level, loud party-poster palette (single look) */
   :root {
     --sun: #ffe14d;
     --hot: #ff3d7f;
     --ink: #22133f;
     --paper: #fff8e7;
     --sky: #43c6ef;
+    --lime: #2fbf71;
+    --mute: #8c84a3;
     --dot: rgba(34, 19, 63, .09);
     --display: "Paytone One", "Arial Black", system-ui, sans-serif;
     --body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
     color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
   [hidden] { display: none !important; }
   img { max-width: 100%; }
   html, body { height: 100%; }
@@ -38,43 +40,43 @@
     overflow-x: hidden;
   }
   .app {
-    max-width: 560px;
+    max-width: 640px;
     margin: 0 auto;
     min-height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    padding-block: 18px 28px;
+    gap: 16px;
+    padding-block: 16px 32px;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     box-sizing: border-box;
   }
 
   /* top bar */
-  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .brand { font-family: var(--display); font-size: 18px; letter-spacing: .01em; }
-  .pips { display: flex; gap: 6px; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .brand { font-family: var(--display); font-size: 18px; }
+  .pips { display: flex; flex-wrap: wrap; gap: 4px; }
   .pip {
-    font-family: var(--display); font-size: 13px;
-    width: 30px; height: 30px; border-radius: 50%;
+    font-family: var(--display); font-size: 11px;
+    width: 24px; height: 24px; border-radius: 50%;
     display: grid; place-items: center;
-    border: 2.5px solid var(--ink); background: var(--paper); color: var(--ink);
+    border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
     transition: background .3s, color .3s, transform .3s;
   }
-  .pip.on { background: var(--hot); color: var(--paper); transform: scale(1.12); }
+  .pip.on { background: var(--hot); color: var(--paper); transform: scale(1.18); }
   .pip.done { background: var(--ink); color: var(--sun); }
 
   /* screens */
   .screen { display: flex; flex-direction: column; gap: 14px; animation: rise .45s cubic-bezier(.2,1.4,.4,1) both; }
   @keyframes rise { from { transform: translateY(14px); opacity: .4; } to { transform: none; opacity: 1; } }
-  .kicker {
-    font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--hot);
-  }
-  h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.05; text-wrap: balance; }
+  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--hot); }
+  h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.08; text-wrap: balance; }
   h1 { font-size: clamp(40px, 11vw, 64px); }
-  h2 { font-size: clamp(28px, 7.5vw, 40px); }
-  .lead { margin: 0; font-size: 16px; max-width: 40ch; }
+  h2 { font-size: clamp(26px, 7vw, 38px); }
+  .lead { margin: 0; font-size: 16px; max-width: 46ch; }
+  .small { font-size: 13px; font-weight: 600; margin: 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
 
   .arena {
     position: relative;
@@ -86,9 +88,17 @@
     box-shadow: 6px 6px 0 var(--ink);
     overflow: hidden;
     touch-action: manipulation;
-    user-select: none;
-    -webkit-user-select: none;
+    user-select: none; -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+  .panel {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 14px;
   }
 
   .hud { display: flex; align-items: center; gap: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -97,8 +107,8 @@
   .meter i { display: block; height: 100%; width: 100%; background: var(--hot); transform-origin: left; }
 
   .btn {
-    font-family: var(--display); font-size: 20px;
-    padding: 12px 26px;
+    font-family: var(--display); font-size: 19px;
+    padding: 11px 24px;
     color: var(--paper); background: var(--ink);
     border: 3px solid var(--ink); border-radius: 999px;
     box-shadow: 4px 4px 0 var(--hot);
@@ -108,131 +118,189 @@
   }
   .btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--hot); }
   .btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--hot); }
-  .btn:focus-visible, .tile:focus-visible, .giftbox:focus-visible { outline: 3px dashed var(--hot); outline-offset: 4px; }
   .btn.alt { background: var(--paper); color: var(--ink); }
+  .btn.sm { font-size: 15px; padding: 7px 16px; box-shadow: 3px 3px 0 var(--hot); }
+  button:focus-visible, input:focus-visible { outline: 3px dashed var(--hot); outline-offset: 3px; }
+
+  .win {
+    background: var(--ink); color: var(--sun);
+    border-radius: 18px; padding: 16px 18px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    animation: rise .45s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  .win b { font-family: var(--display); font-weight: 400; font-size: 22px; }
+  .win .btn { background: var(--hot); border-color: var(--hot); box-shadow: 3px 3px 0 var(--paper); color: var(--paper); }
+
+  .shake { animation: nope .4s; }
+  @keyframes nope { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
   /* intro */
-  .intro-face { position: relative; height: clamp(220px, 44vh, 340px); display: grid; place-items: end center; }
-  .intro-face img { height: 100%; width: auto; max-width: 100%; object-fit: contain; animation: bob 1.6s ease-in-out infinite; transform-origin: 50% 100%; filter: drop-shadow(6px 6px 0 var(--hot)); }
+  .intro-face { height: clamp(200px, 40vh, 320px); display: grid; place-items: end center; }
+  .intro-face img { height: 100%; width: auto; object-fit: contain; animation: bob 1.6s ease-in-out infinite; transform-origin: 50% 100%; filter: drop-shadow(6px 6px 0 var(--hot)); }
   @keyframes bob { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg) translateY(-8px); } }
+  .map { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; }
+  .map li { display: flex; gap: 8px; align-items: baseline; }
+  .map span { font-family: var(--display); color: var(--hot); min-width: 1.6em; font-variant-numeric: tabular-nums; }
 
-  /* level 1: catch */
-  #mole {
-    position: absolute; left: 0; top: 0;
-    width: clamp(110px, 30%, 160px); height: auto;
-    cursor: pointer;
-    transition: left .18s ease-out, top .18s ease-out;
-    filter: drop-shadow(3px 3px 0 var(--ink));
-  }
-  #mole.hit { animation: squish .25s; }
+  /* L1 catch */
+  .mole { position: absolute; left: 0; top: 0; width: clamp(96px, 26%, 140px); cursor: pointer; transition: left .16s ease-out, top .16s ease-out; filter: drop-shadow(3px 3px 0 var(--ink)); }
+  .mole.hit { animation: squish .25s; }
   @keyframes squish { 40% { transform: scale(1.25, .7) rotate(-8deg); } }
-  .pop {
-    position: absolute; pointer-events: none;
-    font-family: var(--display); font-size: 22px; color: var(--hot);
-    -webkit-text-stroke: 1px var(--ink);
-    animation: fly .7s ease-out forwards;
-    transform: translate(-50%, -50%);
-  }
+  .pop { position: absolute; pointer-events: none; font-family: var(--display); font-size: 22px; color: var(--hot); -webkit-text-stroke: 1px var(--ink); animation: fly .7s ease-out forwards; transform: translate(-50%, -50%); }
   @keyframes fly { to { transform: translate(-50%, -150%) scale(1.3); opacity: 0; } }
 
-  /* level 2: runaway button */
-  #flee {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    white-space: nowrap; align-self: auto;
-    transition: left .16s ease-out, top .16s ease-out, background .2s;
+  /* L2 quiz */
+  .qnum { font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .qtext { font-family: var(--display); font-size: clamp(20px, 5.4vw, 26px); line-height: 1.2; margin: 0; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 460px) { .opts { grid-template-columns: 1fr; } }
+  .opt {
+    font: 600 16px/1.3 var(--body); text-align: left;
+    padding: 12px 14px; border: 2.5px solid var(--ink); border-radius: 12px;
+    background: var(--paper); color: var(--ink); cursor: pointer;
   }
-  #flee.tired { background: var(--hot); box-shadow: 4px 4px 0 var(--ink); animation: pant .5s ease-in-out infinite; }
-  @keyframes pant { 50% { transform: translate(-50%, -50%) scale(.94, 1.05); } }
-  #peek {
-    position: absolute; bottom: -12px; right: 10px;
-    width: clamp(110px, 32%, 150px);
-    transform: translateY(70%);
-    transition: transform .25s cubic-bezier(.2,1.6,.4,1);
-    pointer-events: none;
+  .opt:hover { background: var(--sun); }
+  .opt.right { background: var(--lime); color: var(--paper); }
+  .opt.wrong { background: var(--hot); color: var(--paper); }
+  .opt:disabled { cursor: default; }
+
+  /* L3 riddles */
+  .riddle { font-family: var(--display); font-size: clamp(19px, 5vw, 24px); line-height: 1.25; margin: 0; }
+  .answer { display: flex; gap: 8px; flex-wrap: wrap; }
+  .answer input {
+    flex: 1 1 180px; min-width: 0;
+    font: 600 18px var(--body); padding: 10px 14px;
+    border: 2.5px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink);
   }
-  #peek.up { transform: translateY(0) rotate(-6deg); }
+  .hint { font-family: ui-monospace, Consolas, monospace; font-size: 18px; letter-spacing: .25em; color: var(--hot); font-weight: 700; margin: 0; }
+
+  /* L4 runaway button */
+  .flee { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--s, 1)); white-space: nowrap; transition: left .15s ease-out, top .15s ease-out, transform .2s; }
+  .flee.tired { background: var(--hot); box-shadow: 4px 4px 0 var(--ink); }
+  .peek { position: absolute; bottom: -12px; right: 10px; width: clamp(100px, 30%, 140px); transform: translateY(70%); transition: transform .25s cubic-bezier(.2,1.6,.4,1); pointer-events: none; }
+  .peek.up { transform: translateY(0) rotate(-6deg); }
   .taunt { min-height: 1.5em; font-weight: 800; margin: 0; }
 
-  /* level 3: rotate puzzle */
-  .puzzle-wrap { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  /* L5 sliding + L10 lights: image boards */
   .board {
-    width: min(100%, 420px); aspect-ratio: 1; max-width: 100%;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
-    padding: 4px; background: var(--ink);
+    position: relative;
+    width: min(100%, 420px); aspect-ratio: 1;
+    background: var(--ink); border: 4px solid var(--ink);
     border-radius: 14px; box-shadow: 6px 6px 0 var(--hot);
-    transition: gap .4s, padding .4s;
-    box-sizing: border-box;
+    overflow: hidden; box-sizing: border-box;
+    touch-action: manipulation;
   }
-  .board.solved { gap: 0; padding: 0; }
-  .tile {
+  .stile {
+    position: absolute; left: 0; top: 0; width: 33.3333%; height: 33.3333%;
     border: 0; padding: 0; cursor: pointer;
-    background-image: url("assets/puzzle.jpg");
-    background-size: 300% 300%;
-    border-radius: 6px;
-    transition: transform .28s cubic-bezier(.3,1.5,.5,1), border-radius .4s;
+    background-image: url("assets/puzzle.jpg"); background-size: 300% 300%;
+    box-shadow: inset 0 0 0 2px var(--ink);
+    transition: transform .16s ease-out, box-shadow .4s;
   }
-  .board.solved .tile { border-radius: 0; cursor: default; }
-  .ref { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+  .board.solved .stile { box-shadow: none; cursor: default; }
+  .ref { display: flex; align-items: center; gap: 10px; }
   .ref img { width: 56px; height: 56px; border: 2.5px solid var(--ink); border-radius: 8px; }
+  .lights { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+  .light {
+    border: 0; padding: 0; cursor: pointer;
+    background-color: var(--ink);
+    background-image: url("assets/puzzle.jpg"); background-size: 400% 400%;
+    box-shadow: inset 0 0 0 2px var(--ink);
+    transition: filter .2s;
+  }
+  .light.off { filter: brightness(.12) grayscale(1); }
+  .board.solved .light { box-shadow: none; cursor: default; }
+
+  /* L6 simon */
+  .simon { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(100%, 420px); }
+  .pad {
+    aspect-ratio: 1.3; border: 3px solid var(--ink); border-radius: 18px;
+    font-family: var(--display); font-size: clamp(16px, 4.5vw, 22px); color: var(--ink);
+    cursor: pointer; box-shadow: 4px 4px 0 var(--ink);
+    transition: transform .08s, filter .08s;
+    filter: saturate(.55) brightness(.92);
+  }
+  .pad.lit { filter: none; transform: scale(1.05); box-shadow: 0 0 0 6px var(--paper), 4px 4px 0 6px var(--ink); }
+  .pad:disabled { cursor: default; }
+  .pad[data-i="0"] { background: var(--sky); }
+  .pad[data-i="1"] { background: var(--hot); }
+  .pad[data-i="2"] { background: var(--sun); }
+  .pad[data-i="3"] { background: var(--lime); }
+
+  /* L7 platformer */
+  .game { width: 100%; aspect-ratio: 640 / 352; max-width: 100%; display: block; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 6px 6px 0 var(--ink); background: var(--sky); box-sizing: border-box; image-rendering: auto; touch-action: none; }
+  .pad-row { display: flex; justify-content: space-between; gap: 10px; user-select: none; -webkit-user-select: none; }
+  .pad-row .grp { display: flex; gap: 10px; }
+  .ctl {
+    width: 68px; height: 60px; border: 3px solid var(--ink); border-radius: 16px;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--display); font-size: 22px; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink); touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ctl.jump { width: 96px; background: var(--hot); color: var(--paper); }
+  .ctl.held { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+
+  /* L8 wordle */
+  .wgrid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; width: min(100%, 300px); }
+  .wrow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .wcell {
+    aspect-ratio: 1; display: grid; place-items: center;
+    border: 2.5px solid var(--ink); border-radius: 8px; background: var(--paper);
+    font-family: var(--display); font-size: clamp(20px, 6vw, 28px); text-transform: uppercase;
+  }
+  .wcell.g, .key.g { background: var(--lime); color: var(--paper); }
+  .wcell.y, .key.y { background: var(--sun); color: var(--ink); }
+  .wcell.x, .key.x { background: var(--mute); color: var(--paper); }
+  .kb { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .kb .krow { display: flex; justify-content: center; gap: 4px; }
+  .key {
+    flex: 1 1 0; min-width: 0; max-width: 44px; height: 48px;
+    border: 2px solid var(--ink); border-radius: 8px; background: var(--paper); color: var(--ink);
+    font: 800 15px var(--body); cursor: pointer; padding: 0;
+  }
+  .key.wide { max-width: 72px; flex: 1.6 1 0; font-size: 12px; }
+
+  /* L9 lock */
+  .clues { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .clues li { display: flex; align-items: center; gap: 12px; }
+  .digits { display: flex; gap: 4px; }
+  .digits span {
+    width: 30px; height: 36px; display: grid; place-items: center;
+    background: var(--ink); color: var(--sun); border-radius: 6px;
+    font-family: var(--display); font-size: 20px;
+  }
+  .clues p { margin: 0; font-weight: 600; font-size: 15px; min-width: 0; }
+  .dials { display: flex; gap: 12px; }
+  .dial { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .dial button { width: 56px; height: 34px; border: 2.5px solid var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink); font: 800 16px var(--body); cursor: pointer; }
+  .dial output { width: 56px; height: 64px; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 12px; background: var(--sun); font-family: var(--display); font-size: 34px; font-variant-numeric: tabular-nums; }
 
   /* final: gift box */
   .box-stage { display: grid; place-items: end center; padding-top: 40px; }
-  .giftbox {
-    position: relative; width: min(240px, 66vw); aspect-ratio: 1 / .82;
-    border: 0; padding: 0; background: none; cursor: pointer;
-  }
-  .giftbox .base {
-    position: absolute; inset: 22% 6% 0 6%;
-    background: var(--hot); border: 3px solid var(--ink); border-radius: 6px;
-    box-shadow: 6px 6px 0 var(--ink);
-  }
-  .giftbox .lid {
-    position: absolute; left: 0; right: 0; top: 4%; height: 22%;
-    background: var(--hot); border: 3px solid var(--ink); border-radius: 6px;
-    z-index: 3;
-    transition: transform .7s cubic-bezier(.2,.9,.3,1), opacity .7s;
-  }
+  .giftbox { position: relative; width: min(240px, 66vw); aspect-ratio: 1 / .82; border: 0; padding: 0; background: none; cursor: pointer; }
+  .giftbox .base { position: absolute; inset: 22% 6% 0 6%; background: var(--hot); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--ink); }
+  .giftbox .lid { position: absolute; left: 0; right: 0; top: 4%; height: 22%; background: var(--hot); border: 3px solid var(--ink); border-radius: 6px; z-index: 3; transition: transform .7s cubic-bezier(.2,.9,.3,1), opacity .7s; }
   .giftbox .ribbon-v { position: absolute; left: 50%; top: 4%; bottom: 0; width: 16%; transform: translateX(-50%); background: var(--sky); border-inline: 3px solid var(--ink); z-index: 4; }
   .giftbox .bow { position: absolute; left: 50%; top: -12%; width: 46%; height: 22%; transform: translateX(-50%); z-index: 5; }
-  .giftbox .bow::before, .giftbox .bow::after {
-    content: ""; position: absolute; top: 0; width: 48%; height: 100%;
-    background: var(--sky); border: 3px solid var(--ink); border-radius: 50% 50% 10% 50%;
-  }
+  .giftbox .bow::before, .giftbox .bow::after { content: ""; position: absolute; top: 0; width: 48%; height: 100%; background: var(--sky); border: 3px solid var(--ink); border-radius: 50% 50% 10% 50%; }
   .giftbox .bow::before { left: 0; transform: rotate(-18deg); }
   .giftbox .bow::after { right: 0; transform: scaleX(-1) rotate(-18deg); }
-  .giftbox .jack {
-    position: absolute; left: 50%; bottom: 40%; width: 92%;
-    transform: translate(-50%, 40%) scale(.2); opacity: 0;
-    z-index: 2;
-    transition: transform .7s cubic-bezier(.2,1.7,.4,1) .15s, opacity .2s .15s;
-    filter: drop-shadow(4px 4px 0 var(--ink));
-  }
-  .giftbox.shake-1 { animation: shake .3s; }
-  .giftbox.shake-2 { animation: shake .3s; --amp: 7deg; }
-  .giftbox.shake-3 { animation: shake .3s; --amp: 12deg; }
-  @keyframes shake { 25% { transform: rotate(calc(var(--amp, 4deg) * -1)); } 75% { transform: rotate(var(--amp, 4deg)); } }
+  .giftbox .jack { position: absolute; left: 50%; bottom: 40%; width: 92%; transform: translate(-50%, 40%) scale(.2); opacity: 0; z-index: 2; transition: transform .7s cubic-bezier(.2,1.7,.4,1) .15s, opacity .2s .15s; filter: drop-shadow(4px 4px 0 var(--ink)); }
+  .giftbox.shake-1 { animation: wob .3s; }
+  .giftbox.shake-2 { animation: wob .3s; --amp: 7deg; }
+  .giftbox.shake-3 { animation: wob .3s; --amp: 12deg; }
+  @keyframes wob { 25% { transform: rotate(calc(var(--amp, 4deg) * -1)); } 75% { transform: rotate(var(--amp, 4deg)); } }
   .giftbox.open { cursor: default; }
-  .giftbox.open .lid, .giftbox.open .ribbon-v, .giftbox.open .bow { transform: translate(60%, -260%) rotate(40deg); opacity: 0; transition: transform .7s cubic-bezier(.2,.9,.3,1), opacity .7s .2s; }
-  .giftbox.open .ribbon-v { transform: translate(-50%, -260%); }
+  .giftbox.open .lid, .giftbox.open .bow { transform: translate(60%, -260%) rotate(40deg); opacity: 0; }
+  .giftbox.open .ribbon-v { transform: translate(-50%, -260%); opacity: 0; transition: transform .7s, opacity .7s .2s; }
   .giftbox.open .jack { transform: translate(-50%, -18%) scale(1); opacity: 1; }
   .count { font-family: var(--display); font-size: 18px; font-variant-numeric: tabular-nums; }
 
   /* reveal */
-  .card {
-    background: var(--paper); border: 3px solid var(--ink); border-radius: 18px;
-    box-shadow: 6px 6px 0 var(--hot);
-    padding: 14px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
+  .card { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 6px 6px 0 var(--hot); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
   .card img { width: 100%; border-radius: 10px; display: block; }
-  .placeholder {
-    border: 3px dashed var(--ink); border-radius: 12px;
-    aspect-ratio: 1.6; max-width: 100%;
-    display: grid; place-items: center; text-align: center;
-    padding: 16px; box-sizing: border-box;
-    font-weight: 800;
-    background: repeating-linear-gradient(-45deg, var(--paper) 0 14px, var(--sun) 14px 28px);
-  }
+  .placeholder { border: 3px dashed var(--ink); border-radius: 12px; aspect-ratio: 1.6; max-width: 100%; display: grid; place-items: center; text-align: center; padding: 16px; box-sizing: border-box; font-weight: 800; background: repeating-linear-gradient(-45deg, var(--paper) 0 14px, var(--sun) 14px 28px); }
 
   #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; width: 100%; height: 100%; }
 
@@ -246,12 +314,7 @@
 <div class="app">
   <div class="bar">
     <div class="brand">Quà của Chị 2</div>
-    <div class="pips" aria-label="Tiến độ">
-      <span class="pip" data-pip="1">1</span>
-      <span class="pip" data-pip="2">2</span>
-      <span class="pip" data-pip="3">3</span>
-      <span class="pip" data-pip="4" aria-label="Quà">★</span>
-    </div>
+    <div class="pips" id="pips" aria-label="Tiến độ"></div>
   </div>
 
   <!-- intro -->
@@ -259,55 +322,29 @@
     <div class="intro-face"><img src="assets/face.png" alt="Một gương mặt rất bựa"></div>
     <span class="kicker">Có một món quà đang bị giữ</span>
     <h1>Chị 2 muốn lấy quà?</h1>
-    <p class="lead">Thằng này giữ quà rồi. Qua 3 ải thì nó mới chịu nhả ra.</p>
-    <button class="btn" id="startBtn">Vô chơi</button>
-  </section>
-
-  <!-- level 1 -->
-  <section class="screen" id="lv1" hidden>
-    <span class="kicker">Ải 1 · Bắt nó</span>
-    <h2>Chạm trúng mặt nó 8 lần trong 15 giây</h2>
-    <div class="hud">
-      <span id="hitCount">0/8</span>
-      <div class="grow meter"><i id="timeBar"></i></div>
-      <span id="timeLeft">15s</span>
-    </div>
-    <div class="arena" id="arena1">
-      <img id="mole" src="assets/face.png" alt="Mục tiêu" draggable="false">
-    </div>
-    <div id="lv1Result" hidden>
-      <p class="lead" id="lv1Msg"></p>
-      <button class="btn" id="lv1Btn"></button>
+    <p class="lead">Thằng này giữ quà rồi. Qua đủ 10 ải thì nó mới chịu nhả ra. Ải sau khó hơn ải trước, có ải phải dùng tiếng Anh.</p>
+    <ol class="map" id="map"></ol>
+    <div class="row">
+      <button class="btn" id="startBtn">Vô chơi</button>
+      <button class="btn alt" id="resetBtn" hidden>Chơi lại từ ải 1</button>
     </div>
   </section>
 
-  <!-- level 2 -->
-  <section class="screen" id="lv2" hidden>
-    <span class="kicker">Ải 2 · Cái nút lì lợm</span>
-    <h2>Bấm được nút là qua</h2>
-    <p class="taunt" id="taunt">Dễ mà, bấm đi.</p>
-    <div class="arena" id="arena2">
-      <button class="btn" id="flee">Qua ải</button>
-      <img id="peek" src="assets/face.png" alt="" draggable="false">
-    </div>
-  </section>
-
-  <!-- level 3 -->
-  <section class="screen" id="lv3" hidden>
-    <span class="kicker">Ải 3 · Ghép mặt</span>
-    <h2>Xoay từng ô cho mặt nó đứng thẳng</h2>
-    <div class="puzzle-wrap">
-      <div class="board" id="board"></div>
-      <div class="ref"><img src="assets/puzzle.jpg" alt="Ảnh mẫu"> <span>Mẫu đây. Chạm vào ô để xoay 90°. Đã xoay: <b id="moves">0</b> lần</span></div>
-    </div>
-    <div id="lv3Result" hidden>
-      <button class="btn" id="lv3Btn">Đi lấy quà</button>
+  <!-- one shell reused by all 10 levels -->
+  <section class="screen" id="level" hidden>
+    <span class="kicker" id="lvKicker"></span>
+    <h2 id="lvTitle"></h2>
+    <p class="lead" id="lvDesc"></p>
+    <div class="stack" id="lvStage"></div>
+    <div class="win" id="lvWin" hidden>
+      <b id="lvWinMsg">Qua ải!</b>
+      <button class="btn sm" id="lvNext">Ải tiếp</button>
     </div>
   </section>
 
   <!-- final -->
   <section class="screen" id="final" hidden>
-    <span class="kicker">Ải cuối · Hộp quà</span>
+    <span class="kicker">Hết ải rồi · Hộp quà</span>
     <h2 id="boxTitle">Hộp bị kẹt. Gõ mạnh vào.</h2>
     <div class="box-stage">
       <button class="giftbox" id="giftbox" aria-label="Gõ vào hộp quà">
@@ -338,200 +375,757 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const screens = ["intro", "lv1", "lv2", "lv3", "final", "reveal"];
-  const pipFor = { lv1: 1, lv2: 2, lv3: 3, final: 4, reveal: 4 };
-  let current = "intro";
   const rand = (a, b) => a + Math.random() * (b - a);
+  const randi = n => Math.floor(Math.random() * n);
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = randi(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
 
-  // --- tiny sound effects (start only after a tap) ---
+  // ---------- sound ----------
   let ac = null;
-  function blip(freq = 520, dur = .09, type = "square", vol = .06) {
+  function blip(freq = 520, dur = .09, type = "square", vol = .06, slide = 1.8) {
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = type; o.frequency.setValueAtTime(freq, ac.currentTime);
-      o.frequency.exponentialRampToValueAtTime(freq * 1.8, ac.currentTime + dur);
+      o.frequency.exponentialRampToValueAtTime(freq * slide, ac.currentTime + dur);
       g.gain.setValueAtTime(vol, ac.currentTime);
       g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + dur);
       o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + dur);
     } catch (e) {}
   }
+  const yay = () => { blip(523, .12, "triangle", .08, 1); setTimeout(() => blip(659, .12, "triangle", .08, 1), 110); setTimeout(() => blip(784, .3, "triangle", .08, 1.01), 220); };
+  const boo = () => blip(180, .25, "sawtooth", .05, .5);
 
-  function show(id) {
-    stopLv1();
-    current = id;
-    screens.forEach(s => { $(s).hidden = s !== id; });
-    const n = pipFor[id] || 0;
+  function shakeEl(el) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
+
+  // ---------- progress (kept in this browser only) ----------
+  const KEY = "chi2.progress";
+  const load = () => { try { return Math.min(10, +localStorage.getItem(KEY) || 0); } catch (e) { return 0; } };
+  const save = n => { try { localStorage.setItem(KEY, String(n)); } catch (e) {} };
+
+  // =====================================================================
+  // L1 · catch the face
+  function lvCatch(el, win) {
+    const NEED = 10, LIMIT = 14000;
+    el.innerHTML = `
+      <div class="hud"><span class="hits">0/${NEED}</span><div class="grow meter"><i></i></div><span class="tl">14s</span></div>
+      <div class="arena"><img class="mole" src="assets/face.png" alt="Mục tiêu" draggable="false"></div>
+      <div class="row retry" hidden><p class="lead msg"></p><button class="btn">Chơi lại ải này</button></div>`;
+    const q = s => el.querySelector(s);
+    const arena = q(".arena"), mole = q(".mole");
+    let hits = 0, t0 = 0, raf = 0, jt = 0, playing = false;
+    const move = () => {
+      mole.style.left = rand(0, Math.max(0, arena.clientWidth - mole.offsetWidth)) + "px";
+      mole.style.top = rand(0, Math.max(0, arena.clientHeight - mole.offsetHeight)) + "px";
+    };
+    const jump = () => { clearTimeout(jt); jt = setTimeout(() => { move(); jump(); }, Math.max(400, 950 - hits * 60)); };
+    const stop = () => { playing = false; cancelAnimationFrame(raf); clearTimeout(jt); };
+    function tick() {
+      const left = Math.max(0, LIMIT - (performance.now() - t0));
+      q(".meter i").style.transform = `scaleX(${left / LIMIT})`;
+      q(".tl").textContent = Math.ceil(left / 1000) + "s";
+      if (left <= 0) { stop(); q(".msg").textContent = `Hết giờ. Được có ${hits}/${NEED}. Nó đang cười chị kìa.`; q(".retry").hidden = false; boo(); return; }
+      raf = requestAnimationFrame(tick);
+    }
+    function begin() {
+      hits = 0; playing = true; mole.hidden = false;
+      q(".hits").textContent = `0/${NEED}`; q(".retry").hidden = true;
+      requestAnimationFrame(() => { move(); jump(); t0 = performance.now(); tick(); });
+    }
+    q(".retry button").onclick = begin;
+    arena.addEventListener("pointerdown", e => {
+      if (!playing) return;
+      const r = arena.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const pop = t => { const s = document.createElement("span"); s.className = "pop"; s.textContent = t; s.style.left = x + "px"; s.style.top = y + "px"; arena.appendChild(s); setTimeout(() => s.remove(), 750); };
+      if (e.target === mole) {
+        hits++;
+        q(".hits").textContent = `${hits}/${NEED}`;
+        mole.classList.remove("hit"); void mole.offsetWidth; mole.classList.add("hit");
+        pop(["Á!", "Đau!", "Ui da", "Bốp!", "Tha em"][hits % 5]);
+        blip(300 + hits * 50);
+        if (hits >= NEED) { stop(); mole.hidden = true; win("Bắt được rồi. Nó đau lắm đó."); return; }
+        setTimeout(move, 110); jump();
+      } else { pop("Hụt"); blip(140, .08, "sawtooth", .03); }
+    });
+    begin();
+    return stop;
+  }
+
+  // =====================================================================
+  // L2 · Aussie quiz (5 in a row, first option is the right one)
+  const QUIZ = [
+    ["What is the capital city of Australia?", "Canberra", "Sydney", "Melbourne", "Perth"],
+    ["Which two animals are on Australia's coat of arms?", "Kangaroo and emu", "Koala and wombat", "Kangaroo and koala", "Emu and platypus"],
+    ["How many states does Australia have?", "6", "5", "7", "8"],
+    ["The Great Barrier Reef lies off the coast of which state?", "Queensland", "New South Wales", "Victoria", "Western Australia"],
+    ["What is the Aboriginal name for Ayers Rock?", "Uluru", "Kata Tjuta", "Kakadu", "Bondi"],
+    ["Which of these Australian mammals lays eggs?", "Platypus", "Wombat", "Koala", "Quokka"],
+    ["In Aussie slang, what is an \"arvo\"?", "An afternoon", "An avocado", "A barbecue", "A close friend"],
+    ["Who designed the Sydney Opera House?", "Jørn Utzon", "Frank Gehry", "Zaha Hadid", "Renzo Piano"],
+    ["Tasmania's famous little carnivorous marsupial is the Tasmanian…", "Devil", "Wolf", "Bear", "Fox"],
+    ["What is the official currency of Australia?", "Australian dollar", "Australian pound", "Pound sterling", "Euro"],
+    ["Which ocean washes the beaches of Perth?", "Indian Ocean", "Pacific Ocean", "Atlantic Ocean", "Arctic Ocean"],
+    ["Which Australian bird is famous for a call that sounds like laughing?", "Kookaburra", "Emu", "Cassowary", "Galah"],
+    ["What is the title of Australia's national anthem?", "Advance Australia Fair", "Waltzing Matilda", "Down Under", "Land of the Free"],
+    ["The Australian Open is a famous tournament in which sport?", "Tennis", "Golf", "Cricket", "Surfing"],
+    ["What is the highest mountain on mainland Australia?", "Mount Kosciuszko", "Mount Everest", "Mount Cook", "Mount Wellington"],
+    ["In Aussie slang, what is \"brekkie\"?", "Breakfast", "A short break", "A brick wall", "Something broken"],
+  ];
+  function lvQuiz(el, win) {
+    const N = 5;
+    let set, i;
+    function round() {
+      set = shuffle(QUIZ.slice()).slice(0, N); i = 0; ask();
+    }
+    function ask() {
+      const [q, ...opts] = set[i];
+      const right = opts[0];
+      el.innerHTML = `<div class="panel">
+        <span class="qnum">Question ${i + 1} / ${N}</span>
+        <p class="qtext"></p>
+        <div class="opts"></div>
+        <div class="row after" hidden><p class="lead msg"></p><button class="btn sm">Làm lại từ câu 1</button></div>
+      </div>`;
+      el.querySelector(".qtext").textContent = q;
+      const box = el.querySelector(".opts");
+      shuffle(opts.slice()).forEach(o => {
+        const b = document.createElement("button");
+        b.className = "opt"; b.textContent = o;
+        b.onclick = () => {
+          box.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.textContent === right) x.classList.add("right"); });
+          if (o === right) {
+            blip(600 + i * 80, .12, "triangle", .07);
+            setTimeout(() => { i++; i >= N ? win("5/5. Chị 2 rành nước Úc ghê.") : ask(); }, 650);
+          } else {
+            b.classList.add("wrong"); boo(); shakeEl(box);
+            el.querySelector(".msg").textContent = `Sai rồi. Chị mới đúng ${i}/${N}. Làm lại từ đầu, câu hỏi sẽ đổi.`;
+            el.querySelector(".after").hidden = false;
+            el.querySelector(".after button").onclick = round;
+          }
+        };
+        box.appendChild(b);
+      });
+    }
+    round();
+  }
+
+  // =====================================================================
+  // L3 · English riddles (3 in a row)
+  const RIDDLES = [
+    ["I carry my baby in a pocket, I box with my feet, and I can't walk backwards. What am I?", ["kangaroo", "roo"]],
+    ["I sleep up to 20 hours a day, I live in trees, and I only eat eucalyptus leaves. What am I?", ["koala", "koalabear"]],
+    ["I'm a mammal, but I lay eggs. I have a duck's bill and a beaver's tail. What am I?", ["platypus", "duckbilledplatypus"]],
+    ["I'm a giant red rock in the middle of the Australian desert, and I change colour at sunset. What am I?", ["uluru", "ayersrock"]],
+    ["I'm the capital of Australia. People often think I'm Sydney, but I'm not. What am I?", ["canberra"]],
+    ["Throw me away and I'll come right back to you. What am I?", ["boomerang"]],
+    ["I'm black, salty and made from yeast. Aussies spread me on toast; most foreigners hate me. What am I?", ["vegemite"]],
+    ["I'm the biggest living structure on Earth, and you can see me from space off Australia's coast. What am I?", ["greatbarrierreef", "barrierreef", "coralreef"]],
+    ["I'm a big bird that can't fly, but I can run 50 km/h. I'm on Australia's coat of arms. What am I?", ["emu"]],
+  ];
+  function lvRiddle(el, win) {
+    const N = 3;
+    let pool, solved, cur, misses;
+    function start() { pool = shuffle(RIDDLES.slice()); solved = 0; next(); }
+    function next() {
+      cur = pool.shift(); misses = 0;
+      el.innerHTML = `<div class="panel">
+        <span class="qnum">Riddle ${solved + 1} / ${N}</span>
+        <p class="riddle"></p>
+        <form class="answer" autocomplete="off">
+          <input id="riddleAns" type="text" placeholder="Type your answer…" autocapitalize="off" spellcheck="false" aria-label="Đáp án">
+          <button class="btn sm" type="submit">Check</button>
+        </form>
+        <p class="hint" hidden></p>
+        <p class="small msg"></p>
+        <button class="btn alt sm swap" type="button" hidden>Đổi câu khác</button>
+      </div>`;
+      el.querySelector(".riddle").textContent = cur[0];
+      const input = el.querySelector("input"), msg = el.querySelector(".msg");
+      el.querySelector("form").addEventListener("submit", e => {
+        e.preventDefault();
+        const v = norm(input.value);
+        if (!v) return;
+        if (cur[1].some(a => norm(a) === v)) {
+          solved++; yay();
+          if (solved >= N) return win("3 câu đố, không sót câu nào.");
+          msg.textContent = "Đúng!"; setTimeout(next, 600);
+        } else {
+          misses++; boo(); shakeEl(input);
+          msg.textContent = `Chưa đúng (sai ${misses} lần).`;
+          if (misses >= 2) {
+            const w = cur[1][0];
+            const h = el.querySelector(".hint");
+            h.hidden = false;
+            h.textContent = w[0].toUpperCase() + " " + "_ ".repeat(w.length - 1).trim() + `  (${w.length} letters)`;
+          }
+          if (misses >= 4 && pool.length) el.querySelector(".swap").hidden = false;
+        }
+        input.select();
+      });
+      el.querySelector(".swap").onclick = next;
+      setTimeout(() => input.focus({ preventScroll: true }), 50);
+    }
+    start();
+  }
+
+  // =====================================================================
+  // L4 · runaway button
+  function lvFlee(el, win) {
+    const TAUNTS = ["Hụt rồi.", "Chậm quá chị ơi.", "Gần được rồi đó.", "Ơ kìa, bên này nè.", "Tay chị run hả?", "Lêu lêu.", "Nhanh lên coi.", "Sắp được rồi...", "Thở không nổi nữa...", "Thôi được rồi, mệt quá."];
+    el.innerHTML = `<p class="taunt">Dễ mà, bấm đi.</p>
+      <div class="arena"><button class="btn flee">Qua ải</button><img class="peek" src="assets/face.png" alt="" draggable="false"></div>`;
+    const arena = el.querySelector(".arena"), b = el.querySelector(".flee"), peek = el.querySelector(".peek"), taunt = el.querySelector(".taunt");
+    let n = 0, pt = 0;
+    function run(e) {
+      if (n >= TAUNTS.length) return;
+      if (e.type === "pointerenter" && e.pointerType !== "mouse") return;
+      e.preventDefault();
+      const bw = b.offsetWidth, bh = b.offsetHeight, W = arena.clientWidth, H = arena.clientHeight;
+      let x, y, k = 0;
+      do { x = rand(bw / 2 + 8, W - bw / 2 - 8); y = rand(bh / 2 + 8, H - bh / 2 - 8); k++; }
+      while (Math.hypot(x - b.offsetLeft, y - b.offsetTop) < Math.min(W, H) * .4 && k < 25);
+      b.style.left = x + "px"; b.style.top = y + "px";
+      b.style.setProperty("--s", (1 - n * .04).toFixed(2));
+      taunt.textContent = TAUNTS[n++];
+      blip(820 - n * 50, .07);
+      peek.classList.add("up"); clearTimeout(pt); pt = setTimeout(() => peek.classList.remove("up"), 700);
+      if (n >= TAUNTS.length) { b.classList.add("tired"); b.textContent = "Mệt rồi, bấm đi"; }
+    }
+    b.addEventListener("pointerenter", run);
+    b.addEventListener("pointerdown", run);
+    b.addEventListener("click", () => { if (n >= TAUNTS.length) { b.disabled = true; win("Cái nút đầu hàng rồi."); } });
+    return () => clearTimeout(pt);
+  }
+
+  // =====================================================================
+  // L5 · sliding puzzle 3x3
+  function lvSlide(el, win) {
+    el.innerHTML = `<div class="hud"><span>Đã trượt: <span class="mv">0</span></span></div>
+      <div class="board"></div>
+      <div class="ref"><img src="assets/puzzle.jpg" alt="Ảnh mẫu"><p class="small">Ảnh mẫu. Ô góc dưới bên phải là ô trống.</p></div>
+      <button class="btn alt sm again" type="button">Xáo lại</button>`;
+    const board = el.querySelector(".board");
+    let pos, moves, done, tiles = [];
+    for (let t = 0; t < 8; t++) {
+      const b = document.createElement("button");
+      b.className = "stile"; b.setAttribute("aria-label", `Mảnh ${t + 1}`);
+      b.style.backgroundPosition = `${(t % 3) * 50}% ${Math.floor(t / 3) * 50}%`;
+      b.onclick = () => tap(t);
+      board.appendChild(b); tiles.push(b);
+    }
+    const place = () => tiles.forEach((b, t) => { const p = pos[t]; b.style.transform = `translate(${(p % 3) * 100}%, ${Math.floor(p / 3) * 100}%)`; });
+    const adj = (a, b) => Math.abs(a % 3 - b % 3) + Math.abs(Math.floor(a / 3) - Math.floor(b / 3)) === 1;
+    function scramble() {
+      pos = [...Array(9).keys()]; // pos[8] is the blank
+      let prev = -1;
+      for (let k = 0; k < 160 || pos.every((p, i) => p === i); k++) {
+        const opts = [];
+        for (let t = 0; t < 8; t++) if (adj(pos[t], pos[8]) && t !== prev) opts.push(t);
+        const t = opts[randi(opts.length)];
+        [pos[t], pos[8]] = [pos[8], pos[t]]; prev = t;
+      }
+      moves = 0; done = false; board.classList.remove("solved");
+      el.querySelector(".mv").textContent = 0;
+      place();
+    }
+    function tap(t) {
+      if (done || !adj(pos[t], pos[8])) { if (!done) blip(160, .05, "sawtooth", .03); return; }
+      [pos[t], pos[8]] = [pos[8], pos[t]];
+      el.querySelector(".mv").textContent = ++moves;
+      blip(380 + pos[t] * 30, .05, "triangle");
+      place();
+      if (pos.every((p, i) => p === i)) {
+        done = true;
+        setTimeout(() => { board.classList.add("solved"); win(`Xong trong ${moves} lần trượt.`); }, 250);
+      }
+    }
+    el.querySelector(".again").onclick = scramble;
+    scramble();
+  }
+
+  // =====================================================================
+  // L6 · Simon says with Aussie animals
+  function lvSimon(el, win) {
+    const GOAL = 7, NAMES = ["Koala", "Kangaroo", "Emu", "Wombat"], TONES = [330, 392, 494, 587];
+    el.innerHTML = `<div class="hud"><span class="lvl">Dãy: 0/${GOAL}</span><span class="grow"></span><span class="st"></span></div>
+      <div class="simon">${NAMES.map((n, i) => `<button class="pad" data-i="${i}" disabled>${n}</button>`).join("")}</div>
+      <button class="btn sm go" type="button">Bắt đầu</button>`;
+    const pads = [...el.querySelectorAll(".pad")], st = el.querySelector(".st"), go = el.querySelector(".go");
+    let seq = [], step = 0, timers = [], alive = true;
+    const lock = v => pads.forEach(p => (p.disabled = v));
+    const flash = (i, ms = 380) => { pads[i].classList.add("lit"); blip(TONES[i], ms / 1000, "triangle", .08, 1); timers.push(setTimeout(() => pads[i].classList.remove("lit"), ms)); };
+    function play() {
+      lock(true); st.textContent = "Nhìn kỹ...";
+      el.querySelector(".lvl").textContent = `Dãy: ${seq.length}/${GOAL}`;
+      const gap = Math.max(380, 640 - seq.length * 30);
+      seq.forEach((i, k) => timers.push(setTimeout(() => flash(i, gap * .65), 600 + k * gap)));
+      timers.push(setTimeout(() => { if (!alive) return; step = 0; lock(false); st.textContent = "Tới lượt chị"; }, 600 + seq.length * gap));
+    }
+    function begin() { go.hidden = true; seq = [randi(4)]; play(); }
+    pads.forEach((p, i) => p.addEventListener("click", () => {
+      flash(i, 220);
+      if (i !== seq[step]) {
+        lock(true); boo(); shakeEl(el.querySelector(".simon"));
+        st.textContent = `Sai ở con thứ ${step + 1}.`;
+        go.textContent = "Làm lại từ đầu"; go.hidden = false;
+        return;
+      }
+      step++;
+      if (step === seq.length) {
+        lock(true);
+        if (seq.length >= GOAL) { st.textContent = "Trí nhớ đỉnh!"; return win(`Nhớ đủ ${GOAL} con, không sai con nào.`); }
+        st.textContent = "Đúng!";
+        seq.push(randi(4));
+        timers.push(setTimeout(play, 700));
+      }
+    }));
+    go.onclick = begin;
+    return () => { alive = false; timers.forEach(clearTimeout); };
+  }
+
+  // =====================================================================
+  // L7 · platformer
+  function lvPlatform(el, win) {
+    el.innerHTML = `<div class="hud"><span class="cakes">Bánh: 0/3</span><span class="grow"></span><span class="deaths">Ngã: 0</span></div>
+      <canvas class="game" width="640" height="352" aria-label="Màn chơi kiểu Mario"></canvas>
+      <div class="pad-row">
+        <div class="grp"><button class="ctl" data-k="left" aria-label="Sang trái">◀</button><button class="ctl" data-k="right" aria-label="Sang phải">▶</button></div>
+        <button class="ctl jump" data-k="jump">Nhảy</button>
+      </div>
+      <p class="small">Máy tính: phím ← → để chạy, Space hoặc ↑ để nhảy (giữ lâu nhảy cao hơn). Giẫm lên đầu gấu để hạ nó. Gai chạm là chết. Cờ đỏ là điểm hồi sinh.</p>`;
+    const cv = el.querySelector("canvas"), g = cv.getContext("2d");
+    const T = 32, VW = 640, VH = 352, H = 11, W = 118;
+    const css = getComputedStyle(document.documentElement);
+    const C = k => css.getPropertyValue("--" + k).trim();
+    const head = new Image(); head.src = "assets/head.png";
+
+    // build the map
+    const map = Array.from({ length: H }, () => Array(W).fill("."));
+    const set = (x, y, c) => { if (x >= 0 && x < W && y >= 0 && y < H) map[y][x] = c; };
+    const ground = (a, b, top = 9) => { for (let x = a; x <= b; x++) for (let y = top; y < H; y++) set(x, y, "#"); };
+    const blocks = (a, b, y) => { for (let x = a; x <= b; x++) set(x, y, "B"); };
+    const spikes = (a, b, y = 8) => { for (let x = a; x <= b; x++) set(x, y, "^"); };
+    const enemies = [], cakes = [], checks = [];
+    const foe = (x, y = 8) => enemies.push({ sx: x * T + 2, sy: y * T + 8 });
+    const cake = (x, y) => cakes.push({ x: x * T + 6, y: y * T + 6, got: false });
+    const check = x => checks.push({ x: x * T, y: 9 * T - 64, on: false });
+
+    ground(0, 14); foe(10);
+    ground(17, 26); set(20, 8, "B"); set(21, 8, "B"); set(21, 7, "B"); spikes(23, 24);
+    blocks(28, 28, 7);
+    ground(30, 40); set(31, 7, "B"); blocks(32, 36, 5); cake(34, 4); foe(34); foe(38);
+    check(40);
+    ground(44, 46, 7);
+    ground(51, 62); spikes(54, 55); spikes(58, 59); cake(58, 6); foe(61);
+    blocks(64, 65, 7);
+    ground(67, 72); set(70, 8, "B"); for (let y = 7; y <= 8; y++) set(71, y, "B"); for (let y = 6; y <= 8; y++) set(72, y, "B");
+    for (let y = 6; y <= 8; y++) set(76, y, "B"); ground(76, 95); spikes(83, 85); spikes(89, 92);
+    check(80); blocks(89, 92, 7); cake(91, 4); foe(87); foe(94);
+    ground(99, W - 1); foe(103); foe(106); foe(109);
+    const flag = { x: 113 * T, y: 9 * T - 160 };
+    for (let y = 0; y < 9; y++) set(W - 1, y, "#");
+
+    const solid = (tx, ty) => { if (tx < 0 || tx >= W) return true; if (ty < 0 || ty >= H) return false; const c = map[ty][tx]; return c === "#" || c === "B"; };
+    const P = { x: 0, y: 0, vx: 0, vy: 0, w: 24, h: 28, onG: false, face: 1, coyote: 0, buf: 0 };
+    let spawn = { x: 2 * T, y: 9 * T - 28 }, deaths = 0, foes = [], msg = "", msgT = 0, dead = 0, cam = 0, won = false;
+    const keys = { left: false, right: false, jump: false };
+    let jumpWas = false;
+
+    function resetFoes() { foes = enemies.map(e => ({ x: e.sx, y: e.sy, w: 28, h: 24, vx: -1.1, vy: 0, alive: true })); }
+    function respawn() { P.x = spawn.x; P.y = spawn.y; P.vx = P.vy = 0; resetFoes(); }
+    function die() {
+      if (dead) return;
+      dead = 40; deaths++; el.querySelector(".deaths").textContent = `Ngã: ${deaths}`; boo();
+    }
+    function say(t) { msg = t; msgT = 120; }
+
+    function moveX(o) {
+      o.x += o.vx;
+      const top = Math.floor(o.y / T), bot = Math.floor((o.y + o.h - 1) / T);
+      if (o.vx > 0) { const tx = Math.floor((o.x + o.w) / T); for (let ty = top; ty <= bot; ty++) if (solid(tx, ty)) { o.x = tx * T - o.w; o.vx = 0; return true; } }
+      if (o.vx < 0) { const tx = Math.floor(o.x / T); for (let ty = top; ty <= bot; ty++) if (solid(tx, ty)) { o.x = (tx + 1) * T; o.vx = 0; return true; } }
+      return false;
+    }
+    function moveY(o) {
+      o.y += o.vy; o.onG = false;
+      const l = Math.floor(o.x / T), r = Math.floor((o.x + o.w - 1) / T);
+      if (o.vy > 0) { const ty = Math.floor((o.y + o.h) / T); for (let tx = l; tx <= r; tx++) if (solid(tx, ty)) { o.y = ty * T - o.h; o.vy = 0; o.onG = true; break; } }
+      else if (o.vy < 0) { const ty = Math.floor(o.y / T); for (let tx = l; tx <= r; tx++) if (solid(tx, ty)) { o.y = (ty + 1) * T; o.vy = 0; if (map[ty][tx] === "B") blip(200, .05); break; } }
+    }
+    const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+    function step() {
+      if (won) return;
+      if (dead) { if (--dead === 0) respawn(); return; }
+      const acc = P.onG ? .55 : .35, max = 3.3;
+      if (keys.left) { P.vx = Math.max(-max, P.vx - acc); P.face = -1; }
+      else if (keys.right) { P.vx = Math.min(max, P.vx + acc); P.face = 1; }
+      else P.vx *= P.onG ? .7 : .92;
+      if (Math.abs(P.vx) < .05) P.vx = 0;
+      if (keys.jump && !jumpWas) P.buf = 7;
+      jumpWas = keys.jump;
+      P.coyote = P.onG ? 6 : P.coyote - 1; P.buf--;
+      if (P.buf > 0 && P.coyote > 0) { P.vy = -9.7; P.buf = 0; P.coyote = 0; blip(420, .12, "square", .04); }
+      if (!keys.jump && P.vy < -3.5) P.vy = -3.5;
+      P.vy = Math.min(10, P.vy + .5);
+      moveX(P); moveY(P);
+      if (P.y > H * T) return die();
+
+      // spikes: check tiles the player overlaps, using the lower part of the spike tile
+      for (let ty = Math.floor(P.y / T); ty <= Math.floor((P.y + P.h - 1) / T); ty++)
+        for (let tx = Math.floor(P.x / T); tx <= Math.floor((P.x + P.w - 1) / T); tx++)
+          if (ty >= 0 && ty < H && map[ty][tx] === "^" && hit(P, { x: tx * T + 6, y: ty * T + 14, w: T - 12, h: T - 14 })) return die();
+
+      for (const f of foes) {
+        if (!f.alive) continue;
+        f.vy = Math.min(10, f.vy + .5);
+        if (moveX(f)) f.vx = f.vx > 0 ? -1.1 : 1.1;
+        moveY(f);
+        if (f.onG) {
+          const ahead = f.vx > 0 ? Math.floor((f.x + f.w + 1) / T) : Math.floor((f.x - 1) / T);
+          if (!solid(ahead, Math.floor((f.y + f.h + 1) / T))) f.vx = -f.vx;
+        }
+        if (f.y > H * T) f.alive = false;
+        if (hit(P, f)) {
+          if (P.vy > 0 && P.y + P.h - f.y < 14) { f.alive = false; P.vy = keys.jump ? -9 : -6; blip(700, .1, "square", .05, .5); }
+          else return die();
+        }
+      }
+      for (const c of cakes) if (!c.got && hit(P, { x: c.x, y: c.y, w: 20, h: 20 })) {
+        c.got = true; yay();
+        el.querySelector(".cakes").textContent = `Bánh: ${cakes.filter(k => k.got).length}/3`;
+      }
+      for (const k of checks) if (!k.on && P.x + P.w > k.x + 8 && P.x < k.x + 24) {
+        k.on = true; spawn = { x: k.x, y: 9 * T - P.h }; say("Đã lưu điểm hồi sinh"); blip(660, .15, "triangle", .06);
+      }
+      if (P.x + P.w > flag.x + 4 && P.x < flag.x + 12) {
+        const got = cakes.filter(k => k.got).length;
+        if (got < 3) { if (!msgT) say(`Còn thiếu ${3 - got} cái bánh. Quay lại tìm đi.`); }
+        else { won = true; yay(); win(`Về đích sau ${deaths} lần ngã.`); }
+      }
+      if (msgT) msgT--;
+      cam = Math.max(0, Math.min(W * T - VW, P.x - VW * .4));
+    }
+
+    function draw() {
+      const sky = g.createLinearGradient(0, 0, 0, VH);
+      sky.addColorStop(0, C("sky")); sky.addColorStop(1, C("paper"));
+      g.fillStyle = sky; g.fillRect(0, 0, VW, VH);
+      // far hills (parallax)
+      g.fillStyle = C("sun");
+      for (let i = -1; i < 6; i++) { const x = i * 220 - (cam * .3) % 220; g.beginPath(); g.arc(x + 110, VH - 40, 110, Math.PI, 0); g.fill(); }
+      g.save(); g.translate(-Math.round(cam), 0);
+      const x0 = Math.floor(cam / T), x1 = Math.min(W - 1, x0 + VW / T + 1);
+      for (let y = 0; y < H; y++) for (let x = x0; x <= x1; x++) {
+        const c = map[y][x], px = x * T, py = y * T;
+        if (c === "#") {
+          g.fillStyle = C("ink"); g.fillRect(px, py, T, T);
+          if (y === 0 || map[y - 1][x] !== "#") { g.fillStyle = C("lime"); g.fillRect(px, py, T, 7); }
+        } else if (c === "B") {
+          g.fillStyle = C("hot"); g.fillRect(px, py, T, T);
+          g.strokeStyle = C("ink"); g.lineWidth = 3; g.strokeRect(px + 1.5, py + 1.5, T - 3, T - 3);
+          g.beginPath(); g.moveTo(px, py + T / 2); g.lineTo(px + T, py + T / 2); g.moveTo(px + T / 2, py); g.lineTo(px + T / 2, py + T / 2); g.stroke();
+        } else if (c === "^") {
+          g.fillStyle = C("paper"); g.strokeStyle = C("ink"); g.lineWidth = 2;
+          for (let k = 0; k < 2; k++) { g.beginPath(); g.moveTo(px + k * 16, py + T); g.lineTo(px + k * 16 + 8, py + 10); g.lineTo(px + k * 16 + 16, py + T); g.closePath(); g.fill(); g.stroke(); }
+        }
+      }
+      // checkpoints
+      for (const k of checks) {
+        g.fillStyle = C("ink"); g.fillRect(k.x + 14, k.y, 4, 64);
+        g.fillStyle = k.on ? C("hot") : C("mute");
+        g.beginPath(); g.moveTo(k.x + 18, k.y); g.lineTo(k.x + 38, k.y + 9); g.lineTo(k.x + 18, k.y + 18); g.fill();
+      }
+      // goal
+      g.fillStyle = C("ink"); g.fillRect(flag.x, flag.y, 6, 160);
+      g.fillStyle = C("lime"); g.fillRect(flag.x + 6, flag.y + 4, 40, 26);
+      g.fillStyle = C("paper"); g.font = "bold 14px sans-serif"; g.fillText("QUÀ", flag.x + 10, flag.y + 22);
+      // cakes
+      for (const c of cakes) if (!c.got) {
+        g.fillStyle = C("paper"); g.fillRect(c.x, c.y + 8, 20, 12);
+        g.fillStyle = C("hot"); g.fillRect(c.x, c.y + 8, 20, 4);
+        g.strokeStyle = C("ink"); g.lineWidth = 2; g.strokeRect(c.x, c.y + 8, 20, 12);
+        g.fillStyle = C("ink"); g.fillRect(c.x + 9, c.y + 1, 2, 7);
+        g.fillStyle = C("sun"); g.beginPath(); g.arc(c.x + 10, c.y, 3, 0, 7); g.fill();
+      }
+      // drop bears
+      for (const f of foes) if (f.alive) {
+        g.fillStyle = C("mute"); g.strokeStyle = C("ink"); g.lineWidth = 2;
+        g.beginPath(); g.arc(f.x + 4, f.y + 4, 7, 0, 7); g.arc(f.x + f.w - 4, f.y + 4, 7, 0, 7); g.fill(); g.stroke();
+        g.beginPath(); g.roundRect ? g.roundRect(f.x, f.y + 2, f.w, f.h - 2, 9) : g.rect(f.x, f.y + 2, f.w, f.h - 2); g.fill(); g.stroke();
+        g.fillStyle = C("ink"); g.fillRect(f.x + 7, f.y + 10, 4, 4); g.fillRect(f.x + f.w - 11, f.y + 10, 4, 4);
+        g.fillRect(f.x + f.w / 2 - 3, f.y + 15, 6, 5);
+      }
+      // player
+      if (!dead || dead % 6 < 3) {
+        g.save(); g.translate(P.x + P.w / 2, P.y + P.h / 2); g.scale(P.face, 1);
+        if (dead) g.rotate(dead * .3);
+        if (head.complete && head.naturalWidth) g.drawImage(head, -18, -20, 36, 36);
+        else { g.fillStyle = C("hot"); g.fillRect(-12, -14, 24, 28); }
+        g.restore();
+      }
+      g.restore();
+      if (msgT) {
+        g.font = "bold 16px sans-serif"; const w = g.measureText(msg).width + 24;
+        g.fillStyle = C("ink"); g.fillRect((VW - w) / 2, 12, w, 32);
+        g.fillStyle = C("sun"); g.fillText(msg, (VW - w) / 2 + 12, 33);
+      }
+    }
+
+    let raf = 0, last = performance.now(), accT = 0;
+    function loop(now) {
+      accT += Math.min(100, now - last); last = now;
+      while (accT >= 1000 / 60) { step(); accT -= 1000 / 60; }
+      draw();
+      raf = requestAnimationFrame(loop);
+    }
+    const KEYMAP = { ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ArrowUp: "jump", KeyW: "jump", Space: "jump" };
+    const kd = e => { const k = KEYMAP[e.code]; if (k) { keys[k] = true; e.preventDefault(); } };
+    const ku = e => { const k = KEYMAP[e.code]; if (k) { keys[k] = false; e.preventDefault(); } };
+    addEventListener("keydown", kd); addEventListener("keyup", ku);
+    el.querySelectorAll(".ctl").forEach(b => {
+      const k = b.dataset.k;
+      const on = e => { e.preventDefault(); keys[k] = true; b.classList.add("held"); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
+      const off = () => { keys[k] = false; b.classList.remove("held"); };
+      b.addEventListener("pointerdown", on);
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => b.addEventListener(t, off));
+      b.addEventListener("contextmenu", e => e.preventDefault());
+    });
+    respawn();
+    raf = requestAnimationFrame(loop);
+    return () => { cancelAnimationFrame(raf); removeEventListener("keydown", kd); removeEventListener("keyup", ku); };
+  }
+
+  // =====================================================================
+  // L8 · Aussie Wordle
+  const WORDS = [
+    ["KOALA", "A sleepy tree-hugger that only eats eucalyptus"],
+    ["DINGO", "Australia's wild dog"],
+    ["PERTH", "The capital city of Western Australia"],
+    ["CORAL", "The Great Barrier Reef is built from it"],
+    ["OPERA", "Sydney has a famous house for it, with white sails"],
+    ["BEACH", "Bondi is the most famous one"],
+    ["GALAH", "A pink-and-grey cockatoo, also Aussie slang for a fool"],
+  ];
+  function lvWordle(el, win) {
+    let word, hint, row, cur, over, used = [];
+    el.innerHTML = `<div class="hud"><span class="st">Lượt 1/6</span><span class="grow"></span><button class="btn alt sm hintb" type="button" hidden>Xem gợi ý</button></div>
+      <p class="small hinttext" hidden></p>
+      <div class="wgrid">${'<div class="wrow">' + '<div class="wcell"></div>'.repeat(5) + "</div>"}</div>
+      <div class="kb">${["QWERTYUIOP", "ASDFGHJKL", "+ZXCVBNM-"].map(r => `<div class="krow">${[...r].map(c => c === "+" ? '<button class="key wide" data-k="Enter">ENTER</button>' : c === "-" ? '<button class="key wide" data-k="Backspace" aria-label="Xoá">⌫</button>' : `<button class="key" data-k="${c}">${c}</button>`).join("")}</div>`).join("")}</div>
+      <div class="row lose" hidden><p class="lead msg"></p><button class="btn sm">Đổi từ khác</button></div>
+      <p class="small">Đoán một từ tiếng Anh 5 chữ cái liên quan tới nước Úc. Xanh lá: đúng chữ, đúng chỗ. Vàng: có chữ đó nhưng sai chỗ. Xám: không có.</p>`;
+    const grid = el.querySelector(".wgrid");
+    grid.innerHTML = ('<div class="wrow">' + '<div class="wcell"></div>'.repeat(5) + "</div>").repeat(6);
+    const rows = [...grid.querySelectorAll(".wrow")];
+    function start() {
+      const left = WORDS.filter(w => !used.includes(w[0]));
+      [word, hint] = (left.length ? left : WORDS)[randi(left.length || WORDS.length)];
+      used.push(word);
+      row = 0; cur = ""; over = false;
+      grid.querySelectorAll(".wcell").forEach(c => { c.textContent = ""; c.className = "wcell"; });
+      el.querySelectorAll(".key").forEach(k => k.classList.remove("g", "y", "x"));
+      el.querySelector(".lose").hidden = true; el.querySelector(".hintb").hidden = true; el.querySelector(".hinttext").hidden = true;
+      el.querySelector(".hinttext").textContent = "Hint: " + hint;
+      el.querySelector(".st").textContent = "Lượt 1/6";
+    }
+    const paint = () => [...rows[row].children].forEach((c, i) => (c.textContent = cur[i] || ""));
+    function grade(guess) {
+      const res = Array(5).fill("x"), pool = {};
+      for (let i = 0; i < 5; i++) if (guess[i] === word[i]) res[i] = "g"; else pool[word[i]] = (pool[word[i]] || 0) + 1;
+      for (let i = 0; i < 5; i++) if (res[i] !== "g" && pool[guess[i]]) { res[i] = "y"; pool[guess[i]]--; }
+      return res;
+    }
+    function press(k) {
+      if (over) return;
+      if (k === "Enter") {
+        if (cur.length < 5) { shakeEl(rows[row]); return; }
+        const res = grade(cur);
+        [...rows[row].children].forEach((c, i) => c.classList.add(res[i]));
+        const rank = { x: 1, y: 2, g: 3 };
+        [...cur].forEach((ch, i) => {
+          const key = el.querySelector(`.key[data-k="${ch}"]`);
+          const now = ["g", "y", "x"].find(c => key.classList.contains(c));
+          if (!now || rank[res[i]] > rank[now]) { key.classList.remove("g", "y", "x"); key.classList.add(res[i]); }
+        });
+        if (cur === word) { over = true; yay(); return win(`Đoán ra ${word} sau ${row + 1} lượt.`); }
+        row++; cur = "";
+        blip(300, .08, "triangle");
+        if (row >= 3) el.querySelector(".hintb").hidden = !el.querySelector(".hinttext").hidden;
+        if (row >= 6) {
+          over = true; boo();
+          el.querySelector(".msg").textContent = `Hết lượt. Từ đúng là ${word}.`;
+          el.querySelector(".lose").hidden = false;
+          return;
+        }
+        el.querySelector(".st").textContent = `Lượt ${row + 1}/6`;
+      } else if (k === "Backspace") { cur = cur.slice(0, -1); paint(); }
+      else if (/^[A-Z]$/.test(k) && cur.length < 5) { cur += k; paint(); }
+    }
+    el.querySelectorAll(".key").forEach(b => b.addEventListener("click", () => press(b.dataset.k)));
+    el.querySelector(".hintb").onclick = () => { el.querySelector(".hinttext").hidden = false; el.querySelector(".hintb").hidden = true; };
+    el.querySelector(".lose button").onclick = start;
+    const kd = e => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === "Enter" || e.key === "Backspace") { e.preventDefault(); press(e.key); }
+      else if (/^[a-z]$/i.test(e.key)) press(e.key.toUpperCase());
+    };
+    addEventListener("keydown", kd);
+    start();
+    return () => removeEventListener("keydown", kd);
+  }
+
+  // =====================================================================
+  // L9 · lock code (answer 739, unique among codes with 3 different digits)
+  function lvLock(el, win) {
+    const CLUES = [
+      ["452", "Nothing is correct."],
+      ["768", "One digit is correct and well placed."],
+      ["657", "One digit is correct but in the wrong place."],
+      ["293", "Two digits are correct but both are in the wrong place."],
+      ["324", "One digit is correct but in the wrong place."],
+    ];
+    const v = [0, 0, 0];
+    el.innerHTML = `<div class="panel">
+        <p class="small">The code has 3 different digits. Crack it:</p>
+        <ul class="clues">${CLUES.map(([d, t]) => `<li><div class="digits">${[...d].map(x => `<span>${x}</span>`).join("")}</div><p>${t}</p></li>`).join("")}</ul>
+      </div>
+      <div class="row">
+        <div class="dials">${[0, 1, 2].map(i => `<div class="dial"><button data-i="${i}" data-d="1" aria-label="Tăng số ${i + 1}">▲</button><output id="dial${i}">0</output><button data-i="${i}" data-d="-1" aria-label="Giảm số ${i + 1}">▼</button></div>`).join("")}</div>
+        <div class="stack"><button class="btn open" type="button">Mở khoá</button><p class="small msg"></p></div>
+      </div>`;
+    el.querySelectorAll(".dial button").forEach(b => b.addEventListener("click", () => {
+      const i = +b.dataset.i;
+      v[i] = (v[i] + +b.dataset.d + 10) % 10;
+      el.querySelector("#dial" + i).textContent = v[i];
+      blip(500 + v[i] * 20, .04, "square", .03);
+    }));
+    let tries = 0;
+    el.querySelector(".open").onclick = () => {
+      if (v.join("") === "739") { yay(); return win(`Mã là 739. Phá khoá sau ${tries + 1} lần thử.`); }
+      tries++; boo(); shakeEl(el.querySelector(".dials"));
+      el.querySelector(".msg").textContent = `Sai mã rồi (lần ${tries}). Đọc lại manh mối đi.`;
+    };
+  }
+
+  // =====================================================================
+  // L10 · lights out 4x4: light every tile to see the full picture
+  function lvLights(el, win) {
+    el.innerHTML = `<div class="hud"><span>Đã bấm: <span class="mv">0</span></span></div>
+      <div class="board lights"></div>
+      <div class="row"><button class="btn alt sm reset" type="button">Về lúc đầu</button><button class="btn alt sm newb" type="button">Bàn mới</button></div>`;
+    const board = el.querySelector(".lights");
+    const N = 4;
+    let on, start, moves, done;
+    const cells = [];
+    for (let i = 0; i < N * N; i++) {
+      const b = document.createElement("button");
+      b.className = "light"; b.setAttribute("aria-label", `Ô ${i + 1}`);
+      b.style.backgroundPosition = `${(i % N) * 100 / (N - 1)}% ${Math.floor(i / N) * 100 / (N - 1)}%`;
+      b.onclick = () => tap(i);
+      board.appendChild(b); cells.push(b);
+    }
+    const flip = (arr, i) => {
+      const r = Math.floor(i / N), c = i % N;
+      [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < N && cc >= 0 && cc < N) arr[rr * N + cc] = !arr[rr * N + cc];
+      });
+    };
+    const paint = () => cells.forEach((b, i) => b.classList.toggle("off", !on[i]));
+    function fresh() {
+      do {
+        start = Array(N * N).fill(true);
+        shuffle([...Array(N * N).keys()]).slice(0, 5).forEach(i => flip(start, i));
+      } while (start.every(Boolean));
+      reset();
+    }
+    function reset() { on = start.slice(); moves = 0; done = false; board.classList.remove("solved"); el.querySelector(".mv").textContent = 0; paint(); }
+    function tap(i) {
+      if (done) return;
+      flip(on, i); paint();
+      el.querySelector(".mv").textContent = ++moves;
+      blip(300 + on.filter(Boolean).length * 25, .06, "triangle");
+      if (on.every(Boolean)) { done = true; board.classList.add("solved"); win(`Sáng hết cả 16 ô sau ${moves} lần bấm.`); }
+    }
+    el.querySelector(".reset").onclick = reset;
+    el.querySelector(".newb").onclick = fresh;
+    fresh();
+  }
+
+  // =====================================================================
+  const LEVELS = [
+    { name: "Bắt nó", kicker: "Ải 1 · Phản xạ", title: "Chạm trúng mặt nó 10 lần trong 14 giây", desc: "Càng trúng nó chạy càng nhanh.", build: lvCatch },
+    { name: "Aussie quiz", kicker: "Ải 2 · Aussie Quiz", title: "Trả lời đúng liền 5 câu về nước Úc", desc: "Câu hỏi bằng tiếng Anh. Sai một câu là làm lại từ đầu, bộ câu hỏi sẽ đổi.", build: lvQuiz },
+    { name: "Câu đố tiếng Anh", kicker: "Ải 3 · Riddles", title: "Giải liền 3 câu đố tiếng Anh", desc: "Gõ đáp án bằng tiếng Anh. Sai 2 lần sẽ hiện chữ cái đầu.", build: lvRiddle },
+    { name: "Nút lì lợm", kicker: "Ải 4 · Kiên nhẫn", title: "Bấm được nút là qua", desc: "", build: lvFlee },
+    { name: "Trượt ô", kicker: "Ải 5 · Trượt ô", title: "Trượt các mảnh về đúng chỗ", desc: "Chạm vào mảnh nằm sát ô trống để trượt nó vào ô trống.", build: lvSlide },
+    { name: "Trí nhớ", kicker: "Ải 6 · Simon says", title: "Nhớ và bấm lại dãy 7 con vật", desc: "Mỗi vòng dãy dài thêm 1 con và chạy nhanh hơn. Sai một con là làm lại từ đầu.", build: lvSimon },
+    { name: "Super Chị 2", kicker: "Ải 7 · Super Chị 2", title: "Nhặt đủ 3 cái bánh rồi chạy tới cờ QUÀ", desc: "Có bánh nằm ở chỗ khó lấy. Thiếu bánh thì cờ không cho qua.", build: lvPlatform },
+    { name: "Aussie Wordle", kicker: "Ải 8 · Aussie Wordle", title: "Đoán ra từ bí mật trong 6 lượt", desc: "", build: lvWordle },
+    { name: "Phá khoá", kicker: "Ải 9 · Phá khoá", title: "Tìm mã 3 số từ 5 manh mối", desc: "Manh mối bằng tiếng Anh. Không có giới hạn số lần thử.", build: lvLock },
+    { name: "Bật đèn", kicker: "Ải 10 · Bật đèn", title: "Làm sáng cả 16 ô để hiện nguyên hình", desc: "Bấm một ô sẽ đảo trạng thái sáng tối của ô đó và các ô sát bên trên, dưới, trái, phải.", build: lvLights },
+  ];
+
+  // ---------- shell ----------
+  const pips = $("pips");
+  pips.innerHTML = LEVELS.map((_, i) => `<span class="pip" data-pip="${i + 1}">${i + 1}</span>`).join("") + '<span class="pip" data-pip="11" aria-label="Quà">★</span>';
+  $("map").innerHTML = LEVELS.map((l, i) => `<li><span>${i + 1}</span>${l.name}</li>`).join("");
+
+  let cleanup = null;
+  function setPips(n) {
     document.querySelectorAll(".pip").forEach(p => {
       const k = +p.dataset.pip;
       p.classList.toggle("on", k === n);
-      p.classList.toggle("done", k < n || id === "reveal");
-    });
-    scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
-    if (id === "lv1") startLv1();
-    if (id === "lv2") startLv2();
-    if (id === "lv3") startLv3();
-    if (id === "final") startFinal();
-    if (id === "reveal") startReveal();
-  }
-
-  function popText(arena, x, y, text) {
-    const s = document.createElement("span");
-    s.className = "pop"; s.textContent = text;
-    s.style.left = x + "px"; s.style.top = y + "px";
-    arena.appendChild(s);
-    setTimeout(() => s.remove(), 750);
-  }
-
-  // --- Level 1: catch the face ---
-  const NEED = 8, LIMIT = 15000;
-  const arena1 = $("arena1"), mole = $("mole");
-  let hits = 0, t0 = 0, raf1 = 0, jumpTimer = 0, playing1 = false;
-
-  function moveMole() {
-    const w = arena1.clientWidth - mole.offsetWidth;
-    const h = arena1.clientHeight - mole.offsetHeight;
-    mole.style.left = rand(0, Math.max(0, w)) + "px";
-    mole.style.top = rand(0, Math.max(0, h)) + "px";
-  }
-  function scheduleJump() {
-    clearTimeout(jumpTimer);
-    const delay = Math.max(480, 1100 - hits * 80);
-    jumpTimer = setTimeout(() => { moveMole(); scheduleJump(); }, delay);
-  }
-  function tick1() {
-    const left = Math.max(0, LIMIT - (performance.now() - t0));
-    $("timeBar").style.transform = `scaleX(${left / LIMIT})`;
-    $("timeLeft").textContent = Math.ceil(left / 1000) + "s";
-    if (left <= 0) return endLv1(false);
-    raf1 = requestAnimationFrame(tick1);
-  }
-  function startLv1() {
-    hits = 0; playing1 = true;
-    $("hitCount").textContent = `0/${NEED}`;
-    $("lv1Result").hidden = true;
-    mole.style.visibility = "visible";
-    requestAnimationFrame(() => { moveMole(); scheduleJump(); t0 = performance.now(); tick1(); });
-  }
-  function stopLv1() {
-    playing1 = false;
-    cancelAnimationFrame(raf1); clearTimeout(jumpTimer);
-  }
-  function endLv1(won) {
-    stopLv1();
-    $("lv1Result").hidden = false;
-    if (won) {
-      mole.style.visibility = "hidden";
-      $("lv1Msg").textContent = "Bắt được rồi. Nó đau lắm đó.";
-      $("lv1Btn").textContent = "Qua ải 2";
-      $("lv1Btn").onclick = () => show("lv2");
-      blip(660, .25, "triangle", .08);
-    } else {
-      $("lv1Msg").textContent = `Hết giờ. Được có ${hits}/${NEED}. Nó đang cười chị kìa.`;
-      $("lv1Btn").textContent = "Chơi lại ải 1";
-      $("lv1Btn").onclick = () => startLv1();
-    }
-  }
-  arena1.addEventListener("pointerdown", e => {
-    if (!playing1) return;
-    const r = arena1.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    if (e.target === mole) {
-      hits++;
-      $("hitCount").textContent = `${hits}/${NEED}`;
-      mole.classList.remove("hit"); void mole.offsetWidth; mole.classList.add("hit");
-      popText(arena1, x, y, ["Á!", "Đau!", "Ui da", "Bốp!", "Tha em"][hits % 5]);
-      blip(300 + hits * 60);
-      if (hits >= NEED) return endLv1(true);
-      setTimeout(moveMole, 120);
-      scheduleJump();
-    } else {
-      popText(arena1, x, y, "Hụt");
-      blip(140, .08, "sawtooth", .03);
-    }
-  });
-
-  // --- Level 2: the runaway button ---
-  const arena2 = $("arena2"), flee = $("flee"), peek = $("peek");
-  const TAUNTS = ["Hụt rồi.", "Chậm quá chị ơi.", "Gần được rồi đó.", "Ơ kìa, bên này nè.", "Tay chị run hả?", "Sắp mệt rồi...", "Thôi được rồi, mệt quá."];
-  const ESCAPES = TAUNTS.length;
-  let escapes = 0;
-  function startLv2() {
-    escapes = 0;
-    flee.classList.remove("tired");
-    flee.textContent = "Qua ải";
-    flee.style.left = "50%"; flee.style.top = "50%";
-    $("taunt").textContent = "Dễ mà, bấm đi.";
-    peek.classList.remove("up");
-  }
-  function runAway(e) {
-    if (escapes >= ESCAPES) return;
-    if (e.type === "pointerenter" && e.pointerType !== "mouse") return;
-    e.preventDefault();
-    const bw = flee.offsetWidth, bh = flee.offsetHeight;
-    const W = arena2.clientWidth, H = arena2.clientHeight;
-    const curX = flee.offsetLeft, curY = flee.offsetTop;
-    let x, y, tries = 0;
-    do {
-      x = rand(bw / 2 + 8, W - bw / 2 - 8);
-      y = rand(bh / 2 + 8, H - bh / 2 - 8);
-      tries++;
-    } while (Math.hypot(x - curX, y - curY) < Math.min(W, H) * .35 && tries < 20);
-    flee.style.left = x + "px"; flee.style.top = y + "px";
-    $("taunt").textContent = TAUNTS[escapes];
-    escapes++;
-    blip(800 - escapes * 60, .07);
-    peek.classList.add("up");
-    clearTimeout(runAway.t);
-    runAway.t = setTimeout(() => peek.classList.remove("up"), 700);
-    if (escapes >= ESCAPES) {
-      flee.classList.add("tired");
-      flee.textContent = "Mệt rồi, bấm đi";
-    }
-  }
-  flee.addEventListener("pointerenter", runAway);
-  flee.addEventListener("pointerdown", runAway);
-  flee.addEventListener("click", () => { if (escapes >= ESCAPES) show("lv3"); });
-
-  // --- Level 3: rotate the tiles ---
-  const board = $("board");
-  let turns = [], moves = 0, solved = false;
-  function startLv3() {
-    board.innerHTML = ""; board.classList.remove("solved");
-    $("lv3Result").hidden = true;
-    moves = 0; solved = false; $("moves").textContent = "0";
-    turns = Array.from({ length: 9 }, () => Math.floor(rand(1, 4)));
-    // leave two random tiles already upright so it does not feel hopeless
-    [...Array(9).keys()].sort(() => Math.random() - .5).slice(0, 2).forEach(i => (turns[i] = 0));
-    turns.forEach((t, i) => {
-      const b = document.createElement("button");
-      b.className = "tile";
-      b.setAttribute("aria-label", `Ô ${i + 1}`);
-      b.style.backgroundPosition = `${(i % 3) * 50}% ${Math.floor(i / 3) * 50}%`;
-      b.style.transform = `rotate(${t * 90}deg)`;
-      b.addEventListener("click", () => {
-        if (solved) return;
-        turns[i]++;
-        b.style.transform = `rotate(${turns[i] * 90}deg)`;
-        $("moves").textContent = ++moves;
-        blip(420 + (turns[i] % 4) * 80, .06, "triangle");
-        if (turns.every(t => t % 4 === 0)) {
-          solved = true;
-          setTimeout(() => { board.classList.add("solved"); $("lv3Result").hidden = false; blip(880, .3, "triangle", .08); }, 300);
-        }
-      });
-      board.appendChild(b);
+      p.classList.toggle("done", k < n);
     });
   }
+  function screen(id) {
+    if (cleanup) { cleanup(); cleanup = null; }
+    ["intro", "level", "final", "reveal"].forEach(s => ($(s).hidden = s !== id));
+    scrollTo({ top: 0, behavior: "auto" });
+  }
+  function playLevel(i) {
+    screen("level");
+    const L = LEVELS[i];
+    setPips(i + 1);
+    $("lvKicker").textContent = L.kicker;
+    $("lvTitle").textContent = L.title;
+    $("lvDesc").textContent = L.desc; $("lvDesc").hidden = !L.desc;
+    $("lvWin").hidden = true;
+    $("level").style.animation = "none"; void $("level").offsetWidth; $("level").style.animation = "";
+    const stage = $("lvStage");
+    stage.innerHTML = "";
+    let finished = false;
+    cleanup = L.build(stage, msg => {
+      if (finished) return;
+      finished = true;
+      save(Math.max(load(), i + 1));
+      $("lvWinMsg").textContent = msg || "Qua ải!";
+      $("lvNext").textContent = i + 1 < LEVELS.length ? `Qua ải ${i + 2}` : "Mở quà";
+      $("lvNext").onclick = () => (i + 1 < LEVELS.length ? playLevel(i + 1) : startFinal());
+      $("lvWin").hidden = false;
+      confetti(60);
+      setTimeout(() => $("lvWin").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "nearest" }), 100);
+    }) || null;
+  }
+  function showIntro() {
+    screen("intro"); setPips(0);
+    const p = load();
+    $("startBtn").textContent = p >= 10 ? "Mở lại hộp quà" : p > 0 ? `Chơi tiếp ải ${p + 1}` : "Vô chơi";
+    $("resetBtn").hidden = p === 0;
+  }
+  $("startBtn").onclick = () => { const p = load(); p >= 10 ? startFinal() : playLevel(p); };
+  $("resetBtn").onclick = () => { save(0); playLevel(0); };
 
-  // --- Final: knock the gift box open ---
-  const box = $("giftbox");
-  const KNOCKS = 7;
+  // ---------- final box ----------
+  const box = $("giftbox"), KNOCKS = 7;
   let knocks = 0;
   function startFinal() {
-    knocks = 0;
-    box.className = "giftbox";
+    screen("final"); setPips(11);
+    knocks = 0; box.className = "giftbox";
     $("boxCount").textContent = `Còn ${KNOCKS} cú`;
     $("boxTitle").textContent = "Hộp bị kẹt. Gõ mạnh vào.";
   }
@@ -546,35 +1140,25 @@
     if (!left) {
       box.className = "giftbox open";
       $("boxTitle").textContent = "Ơ, sao lại là nó?";
-      blip(520, .4, "triangle", .1);
-      confetti();
-      setTimeout(() => show("reveal"), 2200);
+      yay(); confetti(160);
+      setTimeout(() => { screen("reveal"); setPips(12); confetti(160); }, 2200);
     }
   });
-
-  // --- Reveal ---
+  $("replayBtn").onclick = () => { save(0); showIntro(); };
   const giftImg = $("giftImg");
   giftImg.addEventListener("error", () => { giftImg.hidden = true; $("giftPh").hidden = false; });
-  function startReveal() { confetti(); }
 
-  // --- Confetti ---
+  // ---------- confetti ----------
   const cv = $("confetti"), cx = cv.getContext("2d");
   let parts = [], rafC = 0;
-  function confetti() {
+  function confetti(n) {
     if (reduced) return;
     const dpr = devicePixelRatio || 1;
     cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
     cx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const css = getComputedStyle(document.documentElement);
-    const cols = ["--hot", "--sky", "--sun", "--ink", "--paper"].map(v => css.getPropertyValue(v).trim());
-    for (let i = 0; i < 160; i++) {
-      parts.push({
-        x: innerWidth / 2 + rand(-40, 40), y: innerHeight * .55,
-        vx: rand(-9, 9), vy: rand(-17, -6),
-        w: rand(6, 12), h: rand(8, 16), r: rand(0, 6), vr: rand(-.3, .3),
-        c: cols[i % cols.length], life: 0
-      });
-    }
+    const cols = ["--hot", "--sky", "--sun", "--ink", "--lime"].map(v => css.getPropertyValue(v).trim());
+    for (let i = 0; i < n; i++) parts.push({ x: innerWidth / 2 + rand(-40, 40), y: innerHeight * .6, vx: rand(-9, 9), vy: rand(-17, -6), w: rand(6, 12), h: rand(8, 16), r: rand(0, 6), vr: rand(-.3, .3), c: cols[i % cols.length], life: 0 });
     cancelAnimationFrame(rafC);
     (function loop() {
       cx.clearRect(0, 0, innerWidth, innerHeight);
@@ -589,16 +1173,12 @@
     })();
   }
 
-  $("startBtn").addEventListener("click", () => show("lv1"));
-  $("lv3Btn").addEventListener("click", () => show("final"));
-  $("replayBtn").addEventListener("click", () => show("intro"));
-
-  // keep the player's level if the page is updated while open
-  window.claude?.hot?.snapshot?.(() => ({ stage: current }));
-  const start = data => show(screens.includes(data?.stage) ? data.stage : "intro");
-  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  // ?lv=7 jumps straight to a level (for testing)
+  const jump = +new URLSearchParams(location.search).get("lv");
+  if (jump >= 1 && jump <= 10) playLevel(jump - 1);
+  else if (jump === 11) startFinal();
+  else showIntro();
 })();
 </script>
-
 </body>
 </html>
