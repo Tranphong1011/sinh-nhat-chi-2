@@ -300,7 +300,14 @@
   /* reveal */
   .card { background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 6px 6px 0 var(--hot); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
   .card img { width: 100%; border-radius: 10px; display: block; }
-  .placeholder { border: 3px dashed var(--ink); border-radius: 12px; aspect-ratio: 1.6; max-width: 100%; display: grid; place-items: center; text-align: center; padding: 16px; box-sizing: border-box; font-weight: 800; background: repeating-linear-gradient(-45deg, var(--paper) 0 14px, var(--sun) 14px 28px); }
+  .cardinfo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; animation: rise .45s cubic-bezier(.2,1.4,.4,1) both; }
+  .cardinfo .wide { grid-column: 1 / -1; }
+  .cardinfo div { background: var(--ink); color: var(--sun); border-radius: 12px; padding: 10px 14px; min-width: 0; }
+  .cardinfo dt { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--paper); opacity: .75; }
+  .cardinfo dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .cardinfo dd span { font-family: ui-monospace, Consolas, monospace; font-size: clamp(18px, 5.2vw, 24px); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .06em; user-select: all; -webkit-user-select: all; }
+  .copy { font: 800 12px var(--body); padding: 6px 10px; border-radius: 99px; border: 2px solid var(--sun); background: transparent; color: var(--sun); cursor: pointer; }
+  .copy.ok { background: var(--sun); color: var(--ink); }
 
   #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; width: 100%; height: 100%; }
 
@@ -363,8 +370,20 @@
     <span class="kicker">Nhả quà rồi</span>
     <h2>Của Chị 2 đây</h2>
     <div class="card">
-      <img id="giftImg" src="assets/gift.png" alt="Gift card tặng Chị 2">
-      <div class="placeholder" id="giftPh" hidden>Gift card đang trên đường tới.<br>Quay lại sau nha.</div>
+      <img src="assets/gift.png" alt="Thẻ quà tặng Mastercard trả trước">
+      <form class="stack" id="unlock" autocomplete="off">
+        <label for="dob" class="small">Còn một khoá cuối: nhập ngày sinh của chị (ngày/tháng/năm) để hiện số thẻ.</label>
+        <div class="answer">
+          <input id="dob" type="text" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" aria-label="Ngày sinh">
+          <button class="btn sm" type="submit">Mở</button>
+        </div>
+        <p class="small" id="unlockMsg"></p>
+      </form>
+      <dl class="cardinfo" id="cardInfo" hidden>
+        <div class="wide"><dt>Card number</dt><dd><span id="cNum"></span><button class="copy" type="button" data-copy="cNum">Sao chép</button></dd></div>
+        <div><dt>Expires</dt><dd><span id="cExp"></span></dd></div>
+        <div><dt>CVV</dt><dd><span id="cCvv"></span><button class="copy" type="button" data-copy="cCvv">Sao chép</button></dd></div>
+      </dl>
     </div>
     <button class="btn alt" id="replayBtn">Chơi lại từ đầu</button>
   </section>
@@ -1184,8 +1203,43 @@
     }
   });
   $("replayBtn").onclick = () => { save(0); showIntro(); };
-  const giftImg = $("giftImg");
-  giftImg.addEventListener("error", () => { giftImg.hidden = true; $("giftPh").hidden = false; });
+
+  // ---------- card details: AES-GCM sealed, key derived from the birthday (ddmmyyyy) ----------
+  const VAULT = {"salt":"7JYucixwMyzQ1lC0l8MkBg==","iv":"JCxWOrpIAUM3Dd5V","data":"c/V3ISzRghgKPpjD6faafl97++zFyDVKk5K0baZjcgQhvsqS72lHqW09SpG5xbDEHYZ+eaDj8Irer2YJVna4KXQbd7MO3w=="};
+  const b64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+  async function openVault(pass) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(VAULT.salt), iterations: 250000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const buf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(VAULT.iv) }, key, b64(VAULT.data));
+    return JSON.parse(new TextDecoder().decode(buf));
+  }
+  const dobKey = s => {
+    const m = s.match(/(\d{1,2})\D*(\d{1,2})\D*(\d{4})/);
+    return m ? m[1].padStart(2, "0") + m[2].padStart(2, "0") + m[3] : "";
+  };
+  $("unlock").addEventListener("submit", async e => {
+    e.preventDefault();
+    const msg = $("unlockMsg"), key = dobKey($("dob").value);
+    if (!key) { msg.textContent = "Nhập theo dạng ngày/tháng/năm, ví dụ 01/01/2000."; shakeEl($("dob")); return; }
+    msg.textContent = "Đang mở...";
+    try {
+      const d = await openVault(key);
+      $("cNum").textContent = d.num.replace(/(\d{4})(?=\d)/g, "$1 ");
+      $("cExp").textContent = d.exp;
+      $("cCvv").textContent = d.cvv;
+      $("unlock").hidden = true; $("cardInfo").hidden = false;
+      yay(); confetti(120);
+    } catch (err) {
+      boo(); shakeEl($("dob"));
+      msg.textContent = "Sai ngày sinh rồi. Quà này chỉ Chị 2 mở được thôi.";
+    }
+  });
+  document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", () => {
+    const span = $(b.dataset.copy), text = span.textContent.replace(/\s/g, "");
+    const done = () => { b.textContent = "Đã chép"; b.classList.add("ok"); setTimeout(() => { b.textContent = "Sao chép"; b.classList.remove("ok"); }, 1500); };
+    const pick = () => { const r = document.createRange(); r.selectNodeContents(span); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Đã chọn, bấm giữ để chép"; };
+    try { navigator.clipboard.writeText(text).then(done, pick); } catch (_) { pick(); }
+  }));
 
   // ---------- confetti ----------
   const cv = $("confetti"), cx = cv.getContext("2d");
