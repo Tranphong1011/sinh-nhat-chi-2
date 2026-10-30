@@ -61,6 +61,7 @@
     width: 24px; height: 24px; border-radius: 50%;
     display: grid; place-items: center;
     border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
+    box-sizing: border-box;
     transition: background .3s, color .3s, transform .3s;
   }
   .pip.on { background: var(--hot); color: var(--paper); transform: scale(1.18); }
@@ -135,7 +136,11 @@
   @keyframes nope { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
   /* intro */
-  .intro-face { height: clamp(200px, 40vh, 320px); display: grid; place-items: end center; }
+  .intro-face { height: clamp(200px, 40vh, 320px); display: grid; place-items: end center; overflow: hidden; padding-top: 12px; }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  @media (max-width: 380px) { .pips { gap: 3px; } .pip { width: 22px; height: 22px; font-size: 10px; } }
+  .on-touch { display: none; }
+  @media (pointer: coarse) { .on-touch { display: inline; } .on-desk { display: none; } }
   .intro-face img { height: 100%; width: auto; object-fit: contain; animation: bob 1.6s ease-in-out infinite; transform-origin: 50% 100%; filter: drop-shadow(6px 6px 0 var(--hot)); }
   @keyframes bob { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg) translateY(-8px); } }
   .map { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; }
@@ -228,8 +233,8 @@
   .pad[data-i="3"] { background: var(--lime); }
 
   /* L7 platformer */
-  .game { width: 100%; aspect-ratio: 640 / 352; max-width: 100%; display: block; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 6px 6px 0 var(--ink); background: var(--sky); box-sizing: border-box; image-rendering: auto; touch-action: none; }
-  .pad-row { display: flex; justify-content: space-between; gap: 10px; user-select: none; -webkit-user-select: none; }
+  .game { width: 100%; width: min(100%, calc((100svh - 140px) * var(--ar, 1.818))); align-self: center; aspect-ratio: 640 / 352; max-width: 100%; display: block; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 6px 6px 0 var(--ink); background: var(--sky); box-sizing: border-box; image-rendering: auto; touch-action: none; }
+  .pad-row { display: flex; justify-content: space-between; gap: 10px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .pad-row .grp { display: flex; gap: 10px; }
   .ctl {
     width: 68px; height: 60px; border: 3px solid var(--ink); border-radius: 16px;
@@ -242,7 +247,7 @@
   .ctl.held { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 
   /* L8 wordle */
-  .wgrid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; width: min(100%, 300px); }
+  .wgrid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; width: min(100%, 300px); width: min(100%, 300px, max(200px, 40svh)); align-self: center; }
   .wrow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .wcell {
     aspect-ratio: 1; display: grid; place-items: center;
@@ -391,6 +396,7 @@
 
 <canvas id="confetti"></canvas>
 
+<script src="questions.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -399,6 +405,9 @@
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = randi(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+  // deals items from a reshuffled pile, so nothing repeats until the whole bank has been used
+  const deck = list => { let pile = []; return n => { const out = []; while (out.length < n) { if (!pile.length) pile = shuffle(list.slice()); out.push(pile.pop()); } return out; }; };
+  const quizDeck = deck(QUIZ), riddleDeck = deck(RIDDLES), wordDeck = deck(WORDS);
 
   // ---------- sound ----------
   let ac = null;
@@ -443,9 +452,9 @@
   // =====================================================================
   // L1 · catch the face
   function lvCatch(el, win) {
-    const NEED = 10, LIMIT = 14000;
+    const NEED = 8, LIMIT = 15000;
     el.innerHTML = `
-      <div class="hud"><span class="hits">0/${NEED}</span><div class="grow meter"><i></i></div><span class="tl">14s</span></div>
+      <div class="hud"><span class="hits">0/${NEED}</span><div class="grow meter"><i></i></div><span class="tl">${LIMIT / 1000}s</span></div>
       <div class="arena"><img class="mole" src="assets/face.png" alt="Mục tiêu" draggable="false"></div>
       <div class="row retry" hidden><p class="lead msg"></p><button class="btn">Chơi lại ải này</button></div>`;
     const q = s => el.querySelector(s);
@@ -455,7 +464,7 @@
       mole.style.left = rand(0, Math.max(0, arena.clientWidth - mole.offsetWidth)) + "px";
       mole.style.top = rand(0, Math.max(0, arena.clientHeight - mole.offsetHeight)) + "px";
     };
-    const jump = () => { clearTimeout(jt); jt = setTimeout(() => { move(); jump(); }, Math.max(400, 950 - hits * 60)); };
+    const jump = () => { clearTimeout(jt); jt = setTimeout(() => { move(); jump(); }, Math.max(550, 1100 - hits * 50)); };
     const stop = () => { playing = false; cancelAnimationFrame(raf); clearTimeout(jt); };
     function tick() {
       const left = Math.max(0, LIMIT - (performance.now() - t0));
@@ -490,100 +499,82 @@
   }
 
   // =====================================================================
-  // L2 · Aussie quiz (5 in a row, first option is the right one)
-  const QUIZ = [
-    ["What is the capital city of Australia?", "Canberra", "Sydney", "Melbourne", "Perth"],
-    ["Which two animals are on Australia's coat of arms?", "Kangaroo and emu", "Koala and wombat", "Kangaroo and koala", "Emu and platypus"],
-    ["How many states does Australia have?", "6", "5", "7", "8"],
-    ["The Great Barrier Reef lies off the coast of which state?", "Queensland", "New South Wales", "Victoria", "Western Australia"],
-    ["What is the Aboriginal name for Ayers Rock?", "Uluru", "Kata Tjuta", "Kakadu", "Bondi"],
-    ["Which of these Australian mammals lays eggs?", "Platypus", "Wombat", "Koala", "Quokka"],
-    ["In Aussie slang, what is an \"arvo\"?", "An afternoon", "An avocado", "A barbecue", "A close friend"],
-    ["Who designed the Sydney Opera House?", "Jørn Utzon", "Frank Gehry", "Zaha Hadid", "Renzo Piano"],
-    ["Tasmania's famous little carnivorous marsupial is the Tasmanian…", "Devil", "Wolf", "Bear", "Fox"],
-    ["What is the official currency of Australia?", "Australian dollar", "Australian pound", "Pound sterling", "Euro"],
-    ["Which ocean washes the beaches of Perth?", "Indian Ocean", "Pacific Ocean", "Atlantic Ocean", "Arctic Ocean"],
-    ["Which Australian bird is famous for a call that sounds like laughing?", "Kookaburra", "Emu", "Cassowary", "Galah"],
-    ["What is the title of Australia's national anthem?", "Advance Australia Fair", "Waltzing Matilda", "Down Under", "Land of the Free"],
-    ["The Australian Open is a famous tournament in which sport?", "Tennis", "Golf", "Cricket", "Surfing"],
-    ["What is the highest mountain on mainland Australia?", "Mount Kosciuszko", "Mount Everest", "Mount Cook", "Mount Wellington"],
-    ["In Aussie slang, what is \"brekkie\"?", "Breakfast", "A short break", "A brick wall", "Something broken"],
-  ];
+  // L2 · Aussie quiz (5 questions, 1 mistake allowed; first option in the bank is the right one)
   function lvQuiz(el, win) {
-    const N = 5, SECS = 15;
-    let set, i, stopT = () => {}, nextT = 0;
-    function round() {
-      set = shuffle(QUIZ.slice()).slice(0, N); i = 0; ask();
-    }
+    const N = 5, SECS = 20, ALLOW = 1;
+    let set, i, wrong, stopT = () => {}, nextT = 0;
+    function round() { set = quizDeck(N); i = 0; wrong = 0; ask(); }
+    const advance = () => { i++; i >= N ? win(wrong ? `Đúng ${N - wrong}/${N}, vẫn qua ải!` : "5/5. Chị 2 rành nước Úc ghê.") : ask(); };
     function ask() {
       const [q, ...opts] = set[i];
       const right = opts[0];
       el.innerHTML = `<div class="panel">
-        ${timerHud(`<span class="qnum">Question ${i + 1} / ${N}</span>`, SECS)}
+        ${timerHud(`<span class="qnum">Question ${i + 1} / ${N} · ${ALLOW - wrong ? "còn được sai 1 câu" : "không được sai nữa"}</span>`, SECS)}
         <p class="qtext"></p>
         <div class="opts"></div>
-        <div class="row after" hidden><p class="lead msg"></p><button class="btn sm">Làm lại từ câu 1</button></div>
+        <div class="row after" hidden><p class="lead msg"></p><button class="btn sm">Làm lại</button></div>
       </div>`;
       el.querySelector(".qtext").textContent = q;
       const box = el.querySelector(".opts");
       const reveal = () => box.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.textContent === right) x.classList.add("right"); });
-      const fail = why => {
+      const miss = why => {
         stopT(); boo(); shakeEl(box);
-        el.querySelector(".msg").textContent = `${why} Chị mới đúng ${i}/${N}. Làm lại từ đầu, câu hỏi sẽ đổi.`;
-        el.querySelector(".after").hidden = false;
-        el.querySelector(".after button").onclick = round;
+        wrong++;
+        const after = el.querySelector(".after"), btn = after.querySelector("button");
+        after.hidden = false;
+        if (wrong <= ALLOW) {
+          btn.hidden = true;
+          el.querySelector(".msg").textContent = `${why} Không sao, được sai 1 câu. Qua câu tiếp...`;
+          nextT = setTimeout(advance, 1800);
+        } else {
+          el.querySelector(".msg").textContent = `${why} Sai ${wrong} câu rồi. Làm lại với 5 câu khác nha.`;
+          btn.onclick = round;
+        }
       };
       shuffle(opts.slice()).forEach(o => {
         const b = document.createElement("button");
         b.className = "opt"; b.textContent = o;
         b.onclick = () => {
           stopT(); reveal();
-          if (o === right) {
-            blip(600 + i * 80, .12, "triangle", .07);
-            nextT = setTimeout(() => { i++; i >= N ? win("5/5. Chị 2 rành nước Úc ghê.") : ask(); }, 650);
-          } else { b.classList.add("wrong"); fail("Sai rồi."); }
+          if (o === right) { blip(600 + i * 80, .12, "triangle", .07); nextT = setTimeout(advance, 650); }
+          else { b.classList.add("wrong"); miss("Sai rồi."); }
         };
         box.appendChild(b);
       });
       stopT();
-      stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => { reveal(); fail("Hết giờ!"); });
+      stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => { reveal(); miss("Hết giờ!"); });
     }
     round();
     return () => { stopT(); clearTimeout(nextT); };
   }
 
   // =====================================================================
-  // L3 · English riddles (3 in a row)
-  const RIDDLES = [
-    ["I carry my baby in a pocket, I box with my feet, and I can't walk backwards. What am I?", ["kangaroo", "roo"]],
-    ["I sleep up to 20 hours a day, I live in trees, and I only eat eucalyptus leaves. What am I?", ["koala", "koalabear"]],
-    ["I'm a mammal, but I lay eggs. I have a duck's bill and a beaver's tail. What am I?", ["platypus", "duckbilledplatypus"]],
-    ["I'm a giant red rock in the middle of the Australian desert, and I change colour at sunset. What am I?", ["uluru", "ayersrock"]],
-    ["I'm the capital of Australia. People often think I'm Sydney, but I'm not. What am I?", ["canberra"]],
-    ["Throw me away and I'll come right back to you. What am I?", ["boomerang"]],
-    ["I'm black, salty and made from yeast. Aussies spread me on toast; most foreigners hate me. What am I?", ["vegemite"]],
-    ["I'm the biggest living structure on Earth, and you can see me from space off Australia's coast. What am I?", ["great barrier reef", "barrierreef", "coralreef"]],
-    ["I'm a big bird that can't fly, but I can run 50 km/h. I'm on Australia's coat of arms. What am I?", ["emu"]],
-  ];
+  // L3 · English riddles
   function lvRiddle(el, win) {
-    const N = 3, SECS = 60;
-    let pool, solved, cur, misses, over, stopT = () => {}, nextT = 0;
-    function start() { pool = shuffle(RIDDLES.slice()); solved = 0; next(); }
+    const N = 2, SECS = 90;
+    let solved, cur, misses, over, stopT = () => {}, nextT = 0;
+    function start() { solved = 0; next(); }
+    const hintFor = (w, shown) => {
+      let k = 0;
+      return [...w].map(c => c === " " ? " " : k++ < shown ? c.toUpperCase() : "_").join(" ") + `   (${w.replace(/ /g, "").length} letters)`;
+    };
     function next() {
-      cur = pool.shift(); misses = 0; over = false;
+      cur = riddleDeck(1)[0]; misses = 0; over = false;
       el.innerHTML = `<div class="panel">
         ${timerHud(`<span class="qnum">Riddle ${solved + 1} / ${N}</span>`, SECS)}
         <p class="riddle"></p>
+        <p class="hint"></p>
         <form class="answer" autocomplete="off">
           <input id="riddleAns" type="text" placeholder="Type your answer…" autocapitalize="off" spellcheck="false" aria-label="Đáp án">
           <button class="btn sm" type="submit">Check</button>
         </form>
-        <p class="hint" hidden></p>
         <p class="small msg"></p>
         <button class="btn alt sm swap" type="button" hidden>Đổi câu khác</button>
-        <div class="row after" hidden><button class="btn sm" type="button">Làm lại từ câu 1</button></div>
+        <div class="row after" hidden><button class="btn sm" type="button">Làm lại</button></div>
       </div>`;
       el.querySelector(".riddle").textContent = cur[0];
+      const w = cur[1][0], hint = el.querySelector(".hint");
+      hint.textContent = hintFor(w, 0);
       const input = el.querySelector("input"), msg = el.querySelector(".msg");
       el.querySelector("form").addEventListener("submit", e => {
         e.preventDefault();
@@ -591,18 +582,14 @@
         if (over || !v) return;
         if (cur[1].some(a => norm(a) === v)) {
           over = true; stopT(); solved++; yay();
-          if (solved >= N) return win("3 câu đố, không sót câu nào.");
-          msg.textContent = "Đúng!"; nextT = setTimeout(next, 600);
+          hint.textContent = hintFor(w, 99);
+          if (solved >= N) return win(`Giải xong ${N} câu đố.`);
+          msg.textContent = "Đúng!"; nextT = setTimeout(next, 700);
         } else {
           misses++; boo(); shakeEl(input);
-          msg.textContent = `Chưa đúng (sai ${misses} lần).`;
-          if (misses >= 2) {
-            const w = cur[1][0];
-            const h = el.querySelector(".hint");
-            h.hidden = false;
-            h.textContent = [...w].map((c, k) => k === 0 ? c.toUpperCase() : c === " " ? " " : "_").join(" ") + `  (${w.replace(/ /g, "").length} letters)`;
-          }
-          if (misses >= 4 && pool.length) el.querySelector(".swap").hidden = false;
+          hint.textContent = hintFor(w, Math.min(misses, Math.ceil(w.replace(/ /g, "").length / 2)));
+          msg.textContent = `Chưa đúng. Lộ thêm 1 chữ cái rồi đó.`;
+          if (misses >= 2) el.querySelector(".swap").hidden = false;
         }
         input.select();
       });
@@ -612,10 +599,12 @@
       stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => {
         over = true; boo(); input.disabled = true;
         el.querySelector(".swap").hidden = true;
-        msg.textContent = `Hết giờ! Đáp án là "${cur[1][0]}". Chị mới giải được ${solved}/${N}, làm lại từ đầu với câu khác.`;
+        hint.textContent = hintFor(w, 99);
+        msg.textContent = `Hết giờ! Đáp án là "${w}". Làm lại với câu khác nha.`;
         el.querySelector(".after").hidden = false;
       });
-      setTimeout(() => input.focus({ preventScroll: true }), 50);
+      // on phones, don't pop the keyboard up before she has read the riddle
+      if (!matchMedia("(pointer: coarse)").matches) setTimeout(() => input.focus({ preventScroll: true }), 50);
     }
     start();
     return () => { stopT(); clearTimeout(nextT); };
@@ -624,7 +613,7 @@
   // =====================================================================
   // L4 · runaway button
   function lvFlee(el, win) {
-    const TAUNTS = ["Hụt rồi.", "Chậm quá chị ơi.", "Gần được rồi đó.", "Ơ kìa, bên này nè.", "Tay chị run hả?", "Lêu lêu.", "Nhanh lên coi.", "Sắp được rồi...", "Thở không nổi nữa...", "Thôi được rồi, mệt quá."];
+    const TAUNTS = ["Hụt rồi.", "Chậm quá chị ơi.", "Ơ kìa, bên này nè.", "Lêu lêu.", "Sắp được rồi...", "Thôi được rồi, mệt quá."];
     el.innerHTML = `<p class="taunt">Dễ mà, bấm đi.</p>
       <div class="arena"><button class="btn flee">Qua ải</button><img class="peek" src="assets/face.png" alt="" draggable="false"></div>`;
     const arena = el.querySelector(".arena"), b = el.querySelector(".flee"), peek = el.querySelector(".peek"), taunt = el.querySelector(".taunt");
@@ -671,7 +660,7 @@
     function scramble() {
       pos = [...Array(9).keys()]; // pos[8] is the blank
       let prev = -1;
-      for (let k = 0; k < 160 || pos.every((p, i) => p === i); k++) {
+      for (let k = 0; k < 40 || pos.every((p, i) => p === i); k++) {
         const opts = [];
         for (let t = 0; t < 8; t++) if (adj(pos[t], pos[8]) && t !== prev) opts.push(t);
         const t = opts[randi(opts.length)];
@@ -699,7 +688,7 @@
   // =====================================================================
   // L6 · Simon says with Aussie animals
   function lvSimon(el, win) {
-    const GOAL = 7, NAMES = ["Koala", "Kangaroo", "Emu", "Wombat"], TONES = [330, 392, 494, 587];
+    const GOAL = 5, NAMES = ["Koala", "Kangaroo", "Emu", "Wombat"], TONES = [330, 392, 494, 587];
     el.innerHTML = `<div class="hud"><span class="lvl">Dãy: 0/${GOAL}</span><span class="grow"></span><span class="st"></span></div>
       <div class="simon">${NAMES.map((n, i) => `<button class="pad" data-i="${i}" disabled>${n}</button>`).join("")}</div>
       <button class="btn sm go" type="button">Bắt đầu</button>`;
@@ -710,7 +699,7 @@
     function play() {
       lock(true); st.textContent = "Nhìn kỹ...";
       el.querySelector(".lvl").textContent = `Dãy: ${seq.length}/${GOAL}`;
-      const gap = Math.max(380, 640 - seq.length * 30);
+      const gap = Math.max(520, 740 - seq.length * 30);
       seq.forEach((i, k) => timers.push(setTimeout(() => flash(i, gap * .65), 600 + k * gap)));
       timers.push(setTimeout(() => { if (!alive) return; step = 0; lock(false); st.textContent = "Tới lượt chị"; }, 600 + seq.length * gap));
     }
@@ -745,9 +734,14 @@
         <div class="grp"><button class="ctl" data-k="left" aria-label="Sang trái">◀</button><button class="ctl" data-k="right" aria-label="Sang phải">▶</button></div>
         <button class="ctl jump" data-k="jump">Nhảy</button>
       </div>
-      <p class="small">Máy tính: phím ← → để chạy, Space hoặc ↑ để nhảy (giữ lâu nhảy cao hơn). Giẫm lên đầu gấu để hạ nó. Gai chạm là chết. Cờ đỏ là điểm hồi sinh.</p>`;
+      <p class="small"><span class="on-desk">Phím ← → để chạy, Space hoặc ↑ để nhảy.</span><span class="on-touch">Giữ ◀ ▶ để chạy, bấm Nhảy để nhảy.</span> Giữ nút nhảy lâu thì nhảy cao hơn. Giẫm lên đầu gấu để hạ nó. Gai chạm là chết. Cờ đỏ là điểm hồi sinh.</p>`;
     const cv = el.querySelector("canvas"), g = cv.getContext("2d");
-    const T = 32, VW = 640, VH = 352, H = 11, W = 118;
+    // narrow screens get a zoomed-in camera so the sprites stay readable
+    const T = 32, VW = el.clientWidth < 520 ? 416 : 640, VH = 352, H = 11, W = 118;
+    cv.width = VW;
+    cv.style.aspectRatio = `${VW} / ${VH}`;
+    cv.style.setProperty("--ar", (VW / VH).toFixed(3));
+    if (matchMedia("(pointer: coarse)").matches) setTimeout(() => el.scrollIntoView({ behavior: "auto", block: "start" }), 60);
     const css = getComputedStyle(document.documentElement);
     const C = k => css.getPropertyValue("--" + k).trim();
     const head = new Image(); head.src = "assets/head.png";
@@ -766,15 +760,15 @@
     ground(0, 14); foe(10);
     ground(17, 26); set(20, 8, "B"); set(21, 8, "B"); set(21, 7, "B"); spikes(23, 24);
     blocks(28, 28, 7);
-    ground(30, 40); set(31, 7, "B"); blocks(32, 36, 5); cake(34, 4); foe(34); foe(38);
+    ground(30, 40); set(31, 7, "B"); blocks(32, 36, 5); cake(34, 4); foe(34);
     check(40);
-    ground(44, 46, 7);
+    ground(43, 46, 7);
     ground(51, 62); spikes(54, 55); spikes(58, 59); cake(58, 6); foe(61);
     blocks(64, 65, 7);
     ground(67, 72); set(70, 8, "B"); for (let y = 7; y <= 8; y++) set(71, y, "B"); for (let y = 6; y <= 8; y++) set(72, y, "B");
-    for (let y = 6; y <= 8; y++) set(76, y, "B"); ground(76, 95); spikes(83, 85); spikes(89, 92);
-    check(80); blocks(89, 92, 7); cake(91, 4); foe(87); foe(94);
-    ground(99, W - 1); foe(103); foe(106); foe(109);
+    for (let y = 6; y <= 8; y++) set(76, y, "B"); ground(76, 95); spikes(83, 85); spikes(90, 91);
+    check(80); blocks(89, 92, 7); cake(91, 4); foe(87);
+    ground(99, W - 1); foe(104); foe(110);
     const flag = { x: 113 * T, y: 9 * T - 160 };
     for (let y = 0; y < 9; y++) set(W - 1, y, "#");
 
@@ -818,7 +812,7 @@
       if (keys.jump && !jumpWas) P.buf = 7;
       jumpWas = keys.jump;
       P.coyote = P.onG ? 6 : P.coyote - 1; P.buf--;
-      if (P.buf > 0 && P.coyote > 0) { P.vy = -9.7; P.buf = 0; P.coyote = 0; blip(420, .12, "square", .04); }
+      if (P.buf > 0 && P.coyote > 0) { P.vy = -10.2; P.buf = 0; P.coyote = 0; blip(420, .12, "square", .04); }
       if (!keys.jump && P.vy < -3.5) P.vy = -3.5;
       P.vy = Math.min(10, P.vy + .5);
       moveX(P); moveY(P);
@@ -951,35 +945,24 @@
 
   // =====================================================================
   // L8 · Aussie Wordle
-  const WORDS = [
-    ["KOALA", "A sleepy tree-hugger that only eats eucalyptus"],
-    ["DINGO", "Australia's wild dog"],
-    ["PERTH", "The capital city of Western Australia"],
-    ["CORAL", "The Great Barrier Reef is built from it"],
-    ["OPERA", "Sydney has a famous house for it, with white sails"],
-    ["BEACH", "Bondi is the most famous one"],
-    ["GALAH", "A pink-and-grey cockatoo, also Aussie slang for a fool"],
-  ];
   function lvWordle(el, win) {
-    const SECS = 180;
-    let word, hint, row, cur, over, used = [], stopT = () => {};
+    const SECS = 240;
+    let word, hint, row, cur, over, stopT = () => {};
     el.innerHTML = `${timerHud('<span class="st">Lượt 1/6</span>', SECS)}
       <div class="row"><button class="btn alt sm hintb" type="button" hidden>Xem gợi ý</button><p class="small hinttext" hidden></p></div>
       <div class="wgrid">${'<div class="wrow">' + '<div class="wcell"></div>'.repeat(5) + "</div>"}</div>
-      <div class="kb">${["QWERTYUIOP", "ASDFGHJKL", "+ZXCVBNM-"].map(r => `<div class="krow">${[...r].map(c => c === "+" ? '<button class="key wide" data-k="Enter">ENTER</button>' : c === "-" ? '<button class="key wide" data-k="Backspace" aria-label="Xoá">⌫</button>' : `<button class="key" data-k="${c}">${c}</button>`).join("")}</div>`).join("")}</div>
+      <div class="kb">${["QWERTYUIOP", "ASDFGHJKL", "+ZXCVBNM-"].map(r => `<div class="krow">${[...r].map(c => c === "+" ? '<button class="key wide" data-k="Enter">Đoán</button>' : c === "-" ? '<button class="key wide" data-k="Backspace" aria-label="Xoá">⌫</button>' : `<button class="key" data-k="${c}">${c}</button>`).join("")}</div>`).join("")}</div>
       <div class="row lose" hidden><p class="lead msg"></p><button class="btn sm">Đổi từ khác</button></div>
       <p class="small">Đoán một từ tiếng Anh 5 chữ cái liên quan tới nước Úc. Xanh lá: đúng chữ, đúng chỗ. Vàng: có chữ đó nhưng sai chỗ. Xám: không có.</p>`;
     const grid = el.querySelector(".wgrid");
     grid.innerHTML = ('<div class="wrow">' + '<div class="wcell"></div>'.repeat(5) + "</div>").repeat(6);
     const rows = [...grid.querySelectorAll(".wrow")];
     function start() {
-      const left = WORDS.filter(w => !used.includes(w[0]));
-      [word, hint] = (left.length ? left : WORDS)[randi(left.length || WORDS.length)];
-      used.push(word);
+      [word, hint] = wordDeck(1)[0];
       row = 0; cur = ""; over = false;
       grid.querySelectorAll(".wcell").forEach(c => { c.textContent = ""; c.className = "wcell"; });
       el.querySelectorAll(".key").forEach(k => k.classList.remove("g", "y", "x"));
-      el.querySelector(".lose").hidden = true; el.querySelector(".hintb").hidden = true; el.querySelector(".hinttext").hidden = true;
+      el.querySelector(".lose").hidden = true; el.querySelector(".hintb").hidden = true; el.querySelector(".hinttext").hidden = false;
       el.querySelector(".hinttext").textContent = "Hint: " + hint;
       el.querySelector(".st").textContent = "Lượt 1/6";
       stopT();
@@ -1032,6 +1015,7 @@
     };
     addEventListener("keydown", kd);
     start();
+    if (matchMedia("(pointer: coarse)").matches) setTimeout(() => el.scrollIntoView({ behavior: "auto", block: "start" }), 60);
     return () => { stopT(); removeEventListener("keydown", kd); };
   }
 
@@ -1064,7 +1048,8 @@
     el.querySelector(".open").onclick = () => {
       if (v.join("") === "739") { yay(); return win(`Mã là 739. Phá khoá sau ${tries + 1} lần thử.`); }
       tries++; boo(); shakeEl(el.querySelector(".dials"));
-      el.querySelector(".msg").textContent = `Sai mã rồi (lần ${tries}). Đọc lại manh mối đi.`;
+      const tip = tries >= 4 ? " Gợi ý: số đầu là 7, số cuối là 9." : tries >= 2 ? " Gợi ý: số đầu tiên là 7." : " Đọc lại manh mối đi.";
+      el.querySelector(".msg").textContent = `Sai mã rồi (lần ${tries}).${tip}`;
     };
   }
 
@@ -1096,7 +1081,7 @@
     function fresh() {
       do {
         start = Array(N * N).fill(true);
-        shuffle([...Array(N * N).keys()]).slice(0, 5).forEach(i => flip(start, i));
+        shuffle([...Array(N * N).keys()]).slice(0, 3).forEach(i => flip(start, i));
       } while (start.every(Boolean));
       reset();
     }
@@ -1115,15 +1100,15 @@
 
   // =====================================================================
   const LEVELS = [
-    { name: "Bắt nó", kicker: "Ải 1 · Phản xạ", title: "Chạm trúng mặt nó 10 lần trong 14 giây", desc: "Càng trúng nó chạy càng nhanh.", build: lvCatch },
-    { name: "Aussie quiz", kicker: "Ải 2 · Aussie Quiz", title: "Trả lời đúng liền 5 câu về nước Úc", desc: "Câu hỏi bằng tiếng Anh, mỗi câu có 15 giây. Sai hoặc hết giờ là làm lại từ đầu, bộ câu hỏi sẽ đổi.", build: lvQuiz },
-    { name: "Câu đố tiếng Anh", kicker: "Ải 3 · Riddles", title: "Giải liền 3 câu đố tiếng Anh", desc: "Gõ đáp án bằng tiếng Anh, mỗi câu có 60 giây. Sai 2 lần sẽ hiện chữ cái đầu. Hết giờ là làm lại từ câu 1.", build: lvRiddle },
+    { name: "Bắt nó", kicker: "Ải 1 · Phản xạ", title: "Chạm trúng mặt nó 8 lần trong 15 giây", desc: "Càng trúng nó chạy càng nhanh.", build: lvCatch },
+    { name: "Aussie quiz", kicker: "Ải 2 · Aussie Quiz", title: "Trả lời 5 câu về nước Úc", desc: "Câu hỏi tiếng Anh dễ thôi, mỗi câu 20 giây. Được sai 1 câu. Sai từ 2 câu thì làm lại với 5 câu khác.", build: lvQuiz },
+    { name: "Câu đố tiếng Anh", kicker: "Ải 3 · Riddles", title: "Giải 2 câu đố tiếng Anh", desc: "Gõ đáp án bằng tiếng Anh, mỗi câu 90 giây. Có sẵn số chữ cái, mỗi lần đoán sai lộ thêm 1 chữ. Khó quá thì bấm đổi câu.", build: lvRiddle },
     { name: "Nút lì lợm", kicker: "Ải 4 · Kiên nhẫn", title: "Bấm được nút là qua", desc: "", build: lvFlee },
     { name: "Trượt ô", kicker: "Ải 5 · Trượt ô", title: "Trượt các mảnh về đúng chỗ", desc: "Chạm vào mảnh nằm sát ô trống để trượt nó vào ô trống.", build: lvSlide },
-    { name: "Trí nhớ", kicker: "Ải 6 · Simon says", title: "Nhớ và bấm lại dãy 7 con vật", desc: "Mỗi vòng dãy dài thêm 1 con và chạy nhanh hơn. Sai một con là làm lại từ đầu.", build: lvSimon },
-    { name: "Super Chị 2", kicker: "Ải 7 · Super Chị 2", title: "Nhặt đủ 3 cái bánh rồi chạy tới cờ QUÀ", desc: "Có bánh nằm ở chỗ khó lấy. Thiếu bánh thì cờ không cho qua.", build: lvPlatform },
-    { name: "Aussie Wordle", kicker: "Ải 8 · Aussie Wordle", title: "Đoán ra từ bí mật trong 6 lượt", desc: "Có 3 phút cho mỗi từ. Hết lượt hoặc hết giờ thì đổi sang từ khác.", build: lvWordle },
-    { name: "Phá khoá", kicker: "Ải 9 · Phá khoá", title: "Tìm mã 3 số từ 5 manh mối", desc: "Manh mối bằng tiếng Anh. Không có giới hạn số lần thử.", build: lvLock },
+    { name: "Trí nhớ", kicker: "Ải 6 · Simon says", title: "Nhớ và bấm lại dãy 5 con vật", desc: "Mỗi vòng dãy dài thêm 1 con và chạy nhanh hơn. Sai một con là làm lại từ đầu.", build: lvSimon },
+    { name: "Super Chị 2", kicker: "Ải 7 · Super Chị 2", title: "Nhặt đủ 3 cái bánh rồi chạy tới cờ QUÀ", desc: "Có bánh nằm trên cao, nhảy lên mà lấy. Thiếu bánh thì cờ không cho qua.", build: lvPlatform },
+    { name: "Aussie Wordle", kicker: "Ải 8 · Aussie Wordle", title: "Đoán ra từ bí mật trong 6 lượt", desc: "Có gợi ý sẵn và 4 phút cho mỗi từ. Hết lượt hoặc hết giờ thì đổi sang từ khác.", build: lvWordle },
+    { name: "Phá khoá", kicker: "Ải 9 · Phá khoá", title: "Tìm mã 3 số từ 5 manh mối", desc: "Manh mối bằng tiếng Anh. Thử bao nhiêu lần cũng được, sai vài lần sẽ có gợi ý.", build: lvLock },
     { name: "Bật đèn", kicker: "Ải 10 · Bật đèn", title: "Làm sáng cả 16 ô để hiện nguyên hình", desc: "Bấm một ô sẽ đảo trạng thái sáng tối của ô đó và các ô sát bên trên, dưới, trái, phải.", build: lvLights },
   ];
 
