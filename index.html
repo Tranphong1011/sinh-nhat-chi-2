@@ -399,6 +399,23 @@
 
   function shakeEl(el) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
 
+  // countdown: drains a .meter bar, writes seconds left into label, calls onEnd at zero; returns stop()
+  function countdown(bar, label, ms, onEnd) {
+    const t0 = performance.now();
+    let raf = 0, warned = false;
+    (function tick() {
+      const left = Math.max(0, ms - (performance.now() - t0));
+      bar.style.transform = `scaleX(${left / ms})`;
+      label.textContent = fmtSecs(Math.ceil(left / 1000));
+      if (!warned && left < 5000) { warned = true; blip(880, .05, "square", .03, 1); }
+      if (left <= 0) return onEnd();
+      raf = requestAnimationFrame(tick);
+    })();
+    return () => cancelAnimationFrame(raf);
+  }
+  const fmtSecs = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : s + "s";
+  const timerHud = (lead, secs) => `<div class="hud">${lead}<div class="grow meter"><i></i></div><span class="tl">${fmtSecs(secs)}</span></div>`;
+
   // ---------- progress (kept in this browser only) ----------
   const KEY = "chi2.progress";
   const load = () => { try { return Math.min(10, +localStorage.getItem(KEY) || 0); } catch (e) { return 0; } };
@@ -474,8 +491,8 @@
     ["In Aussie slang, what is \"brekkie\"?", "Breakfast", "A short break", "A brick wall", "Something broken"],
   ];
   function lvQuiz(el, win) {
-    const N = 5;
-    let set, i;
+    const N = 5, SECS = 15;
+    let set, i, stopT = () => {}, nextT = 0;
     function round() {
       set = shuffle(QUIZ.slice()).slice(0, N); i = 0; ask();
     }
@@ -483,32 +500,37 @@
       const [q, ...opts] = set[i];
       const right = opts[0];
       el.innerHTML = `<div class="panel">
-        <span class="qnum">Question ${i + 1} / ${N}</span>
+        ${timerHud(`<span class="qnum">Question ${i + 1} / ${N}</span>`, SECS)}
         <p class="qtext"></p>
         <div class="opts"></div>
         <div class="row after" hidden><p class="lead msg"></p><button class="btn sm">Làm lại từ câu 1</button></div>
       </div>`;
       el.querySelector(".qtext").textContent = q;
       const box = el.querySelector(".opts");
+      const reveal = () => box.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.textContent === right) x.classList.add("right"); });
+      const fail = why => {
+        stopT(); boo(); shakeEl(box);
+        el.querySelector(".msg").textContent = `${why} Chị mới đúng ${i}/${N}. Làm lại từ đầu, câu hỏi sẽ đổi.`;
+        el.querySelector(".after").hidden = false;
+        el.querySelector(".after button").onclick = round;
+      };
       shuffle(opts.slice()).forEach(o => {
         const b = document.createElement("button");
         b.className = "opt"; b.textContent = o;
         b.onclick = () => {
-          box.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.textContent === right) x.classList.add("right"); });
+          stopT(); reveal();
           if (o === right) {
             blip(600 + i * 80, .12, "triangle", .07);
-            setTimeout(() => { i++; i >= N ? win("5/5. Chị 2 rành nước Úc ghê.") : ask(); }, 650);
-          } else {
-            b.classList.add("wrong"); boo(); shakeEl(box);
-            el.querySelector(".msg").textContent = `Sai rồi. Chị mới đúng ${i}/${N}. Làm lại từ đầu, câu hỏi sẽ đổi.`;
-            el.querySelector(".after").hidden = false;
-            el.querySelector(".after button").onclick = round;
-          }
+            nextT = setTimeout(() => { i++; i >= N ? win("5/5. Chị 2 rành nước Úc ghê.") : ask(); }, 650);
+          } else { b.classList.add("wrong"); fail("Sai rồi."); }
         };
         box.appendChild(b);
       });
+      stopT();
+      stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => { reveal(); fail("Hết giờ!"); });
     }
     round();
+    return () => { stopT(); clearTimeout(nextT); };
   }
 
   // =====================================================================
@@ -521,17 +543,17 @@
     ["I'm the capital of Australia. People often think I'm Sydney, but I'm not. What am I?", ["canberra"]],
     ["Throw me away and I'll come right back to you. What am I?", ["boomerang"]],
     ["I'm black, salty and made from yeast. Aussies spread me on toast; most foreigners hate me. What am I?", ["vegemite"]],
-    ["I'm the biggest living structure on Earth, and you can see me from space off Australia's coast. What am I?", ["greatbarrierreef", "barrierreef", "coralreef"]],
+    ["I'm the biggest living structure on Earth, and you can see me from space off Australia's coast. What am I?", ["great barrier reef", "barrierreef", "coralreef"]],
     ["I'm a big bird that can't fly, but I can run 50 km/h. I'm on Australia's coat of arms. What am I?", ["emu"]],
   ];
   function lvRiddle(el, win) {
-    const N = 3;
-    let pool, solved, cur, misses;
+    const N = 3, SECS = 60;
+    let pool, solved, cur, misses, over, stopT = () => {}, nextT = 0;
     function start() { pool = shuffle(RIDDLES.slice()); solved = 0; next(); }
     function next() {
-      cur = pool.shift(); misses = 0;
+      cur = pool.shift(); misses = 0; over = false;
       el.innerHTML = `<div class="panel">
-        <span class="qnum">Riddle ${solved + 1} / ${N}</span>
+        ${timerHud(`<span class="qnum">Riddle ${solved + 1} / ${N}</span>`, SECS)}
         <p class="riddle"></p>
         <form class="answer" autocomplete="off">
           <input id="riddleAns" type="text" placeholder="Type your answer…" autocapitalize="off" spellcheck="false" aria-label="Đáp án">
@@ -540,17 +562,18 @@
         <p class="hint" hidden></p>
         <p class="small msg"></p>
         <button class="btn alt sm swap" type="button" hidden>Đổi câu khác</button>
+        <div class="row after" hidden><button class="btn sm" type="button">Làm lại từ câu 1</button></div>
       </div>`;
       el.querySelector(".riddle").textContent = cur[0];
       const input = el.querySelector("input"), msg = el.querySelector(".msg");
       el.querySelector("form").addEventListener("submit", e => {
         e.preventDefault();
         const v = norm(input.value);
-        if (!v) return;
+        if (over || !v) return;
         if (cur[1].some(a => norm(a) === v)) {
-          solved++; yay();
+          over = true; stopT(); solved++; yay();
           if (solved >= N) return win("3 câu đố, không sót câu nào.");
-          msg.textContent = "Đúng!"; setTimeout(next, 600);
+          msg.textContent = "Đúng!"; nextT = setTimeout(next, 600);
         } else {
           misses++; boo(); shakeEl(input);
           msg.textContent = `Chưa đúng (sai ${misses} lần).`;
@@ -558,16 +581,25 @@
             const w = cur[1][0];
             const h = el.querySelector(".hint");
             h.hidden = false;
-            h.textContent = w[0].toUpperCase() + " " + "_ ".repeat(w.length - 1).trim() + `  (${w.length} letters)`;
+            h.textContent = [...w].map((c, k) => k === 0 ? c.toUpperCase() : c === " " ? " " : "_").join(" ") + `  (${w.replace(/ /g, "").length} letters)`;
           }
           if (misses >= 4 && pool.length) el.querySelector(".swap").hidden = false;
         }
         input.select();
       });
       el.querySelector(".swap").onclick = next;
+      el.querySelector(".after button").onclick = start;
+      stopT();
+      stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => {
+        over = true; boo(); input.disabled = true;
+        el.querySelector(".swap").hidden = true;
+        msg.textContent = `Hết giờ! Đáp án là "${cur[1][0]}". Chị mới giải được ${solved}/${N}, làm lại từ đầu với câu khác.`;
+        el.querySelector(".after").hidden = false;
+      });
       setTimeout(() => input.focus({ preventScroll: true }), 50);
     }
     start();
+    return () => { stopT(); clearTimeout(nextT); };
   }
 
   // =====================================================================
@@ -910,9 +942,10 @@
     ["GALAH", "A pink-and-grey cockatoo, also Aussie slang for a fool"],
   ];
   function lvWordle(el, win) {
-    let word, hint, row, cur, over, used = [];
-    el.innerHTML = `<div class="hud"><span class="st">Lượt 1/6</span><span class="grow"></span><button class="btn alt sm hintb" type="button" hidden>Xem gợi ý</button></div>
-      <p class="small hinttext" hidden></p>
+    const SECS = 180;
+    let word, hint, row, cur, over, used = [], stopT = () => {};
+    el.innerHTML = `${timerHud('<span class="st">Lượt 1/6</span>', SECS)}
+      <div class="row"><button class="btn alt sm hintb" type="button" hidden>Xem gợi ý</button><p class="small hinttext" hidden></p></div>
       <div class="wgrid">${'<div class="wrow">' + '<div class="wcell"></div>'.repeat(5) + "</div>"}</div>
       <div class="kb">${["QWERTYUIOP", "ASDFGHJKL", "+ZXCVBNM-"].map(r => `<div class="krow">${[...r].map(c => c === "+" ? '<button class="key wide" data-k="Enter">ENTER</button>' : c === "-" ? '<button class="key wide" data-k="Backspace" aria-label="Xoá">⌫</button>' : `<button class="key" data-k="${c}">${c}</button>`).join("")}</div>`).join("")}</div>
       <div class="row lose" hidden><p class="lead msg"></p><button class="btn sm">Đổi từ khác</button></div>
@@ -930,6 +963,12 @@
       el.querySelector(".lose").hidden = true; el.querySelector(".hintb").hidden = true; el.querySelector(".hinttext").hidden = true;
       el.querySelector(".hinttext").textContent = "Hint: " + hint;
       el.querySelector(".st").textContent = "Lượt 1/6";
+      stopT();
+      stopT = countdown(el.querySelector(".meter i"), el.querySelector(".tl"), SECS * 1000, () => {
+        over = true; boo();
+        el.querySelector(".msg").textContent = `Hết giờ. Từ đúng là ${word}.`;
+        el.querySelector(".lose").hidden = false;
+      });
     }
     const paint = () => [...rows[row].children].forEach((c, i) => (c.textContent = cur[i] || ""));
     function grade(guess) {
@@ -950,12 +989,12 @@
           const now = ["g", "y", "x"].find(c => key.classList.contains(c));
           if (!now || rank[res[i]] > rank[now]) { key.classList.remove("g", "y", "x"); key.classList.add(res[i]); }
         });
-        if (cur === word) { over = true; yay(); return win(`Đoán ra ${word} sau ${row + 1} lượt.`); }
+        if (cur === word) { over = true; stopT(); yay(); return win(`Đoán ra ${word} sau ${row + 1} lượt.`); }
         row++; cur = "";
         blip(300, .08, "triangle");
         if (row >= 3) el.querySelector(".hintb").hidden = !el.querySelector(".hinttext").hidden;
         if (row >= 6) {
-          over = true; boo();
+          over = true; stopT(); boo();
           el.querySelector(".msg").textContent = `Hết lượt. Từ đúng là ${word}.`;
           el.querySelector(".lose").hidden = false;
           return;
@@ -974,7 +1013,7 @@
     };
     addEventListener("keydown", kd);
     start();
-    return () => removeEventListener("keydown", kd);
+    return () => { stopT(); removeEventListener("keydown", kd); };
   }
 
   // =====================================================================
@@ -1058,13 +1097,13 @@
   // =====================================================================
   const LEVELS = [
     { name: "Bắt nó", kicker: "Ải 1 · Phản xạ", title: "Chạm trúng mặt nó 10 lần trong 14 giây", desc: "Càng trúng nó chạy càng nhanh.", build: lvCatch },
-    { name: "Aussie quiz", kicker: "Ải 2 · Aussie Quiz", title: "Trả lời đúng liền 5 câu về nước Úc", desc: "Câu hỏi bằng tiếng Anh. Sai một câu là làm lại từ đầu, bộ câu hỏi sẽ đổi.", build: lvQuiz },
-    { name: "Câu đố tiếng Anh", kicker: "Ải 3 · Riddles", title: "Giải liền 3 câu đố tiếng Anh", desc: "Gõ đáp án bằng tiếng Anh. Sai 2 lần sẽ hiện chữ cái đầu.", build: lvRiddle },
+    { name: "Aussie quiz", kicker: "Ải 2 · Aussie Quiz", title: "Trả lời đúng liền 5 câu về nước Úc", desc: "Câu hỏi bằng tiếng Anh, mỗi câu có 15 giây. Sai hoặc hết giờ là làm lại từ đầu, bộ câu hỏi sẽ đổi.", build: lvQuiz },
+    { name: "Câu đố tiếng Anh", kicker: "Ải 3 · Riddles", title: "Giải liền 3 câu đố tiếng Anh", desc: "Gõ đáp án bằng tiếng Anh, mỗi câu có 60 giây. Sai 2 lần sẽ hiện chữ cái đầu. Hết giờ là làm lại từ câu 1.", build: lvRiddle },
     { name: "Nút lì lợm", kicker: "Ải 4 · Kiên nhẫn", title: "Bấm được nút là qua", desc: "", build: lvFlee },
     { name: "Trượt ô", kicker: "Ải 5 · Trượt ô", title: "Trượt các mảnh về đúng chỗ", desc: "Chạm vào mảnh nằm sát ô trống để trượt nó vào ô trống.", build: lvSlide },
     { name: "Trí nhớ", kicker: "Ải 6 · Simon says", title: "Nhớ và bấm lại dãy 7 con vật", desc: "Mỗi vòng dãy dài thêm 1 con và chạy nhanh hơn. Sai một con là làm lại từ đầu.", build: lvSimon },
     { name: "Super Chị 2", kicker: "Ải 7 · Super Chị 2", title: "Nhặt đủ 3 cái bánh rồi chạy tới cờ QUÀ", desc: "Có bánh nằm ở chỗ khó lấy. Thiếu bánh thì cờ không cho qua.", build: lvPlatform },
-    { name: "Aussie Wordle", kicker: "Ải 8 · Aussie Wordle", title: "Đoán ra từ bí mật trong 6 lượt", desc: "", build: lvWordle },
+    { name: "Aussie Wordle", kicker: "Ải 8 · Aussie Wordle", title: "Đoán ra từ bí mật trong 6 lượt", desc: "Có 3 phút cho mỗi từ. Hết lượt hoặc hết giờ thì đổi sang từ khác.", build: lvWordle },
     { name: "Phá khoá", kicker: "Ải 9 · Phá khoá", title: "Tìm mã 3 số từ 5 manh mối", desc: "Manh mối bằng tiếng Anh. Không có giới hạn số lần thử.", build: lvLock },
     { name: "Bật đèn", kicker: "Ải 10 · Bật đèn", title: "Làm sáng cả 16 ô để hiện nguyên hình", desc: "Bấm một ô sẽ đảo trạng thái sáng tối của ô đó và các ô sát bên trên, dưới, trái, phải.", build: lvLights },
   ];
